@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>リアルタイム学習ルーム（通知・設定機能つき）</title>
+  <title>リアルタイム学習ルーム（バックグラウンド通知対応）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* デフォルトのダークテーマ */
       --bg: #0d0d0f;
       --bg2: #16161a;
       --bg3: #1e1e24;
@@ -43,63 +42,17 @@
       transition: background 0.3s, color 0.3s;
     }
 
-    .app {
-      width: 100%;
-      max-width: 480px;
-    }
-
-    .app-header {
-      text-align: center;
-      margin-bottom: 2rem;
-      padding-top: 0.5rem;
-    }
-    .app-header h1 {
-      font-size: 15px;
-      font-weight: 400;
-      color: var(--text3);
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
+    .app { width: 100%; max-width: 480px; }
+    .app-header { text-align: center; margin-bottom: 2rem; padding-top: 0.5rem; }
+    .app-header h1 { font-size: 15px; font-weight: 400; color: var(--text3); letter-spacing: 4px; text-transform: uppercase; }
 
     /* Tabs */
-    .tab-bar {
-      display: flex;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 4px;
-      gap: 4px;
-      margin-bottom: 1.75rem;
-      flex-wrap: wrap;
-    }
-    .tab {
-      flex: 1 1 18%;
-      padding: 10px 0;
-      background: transparent;
-      border: none;
-      border-radius: var(--radius-md);
-      font-family: 'Sora', sans-serif;
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--text3);
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
+    .tab-bar { display: flex; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; gap: 4px; margin-bottom: 1.75rem; flex-wrap: wrap; }
+    .tab { flex: 1 1 18%; padding: 10px 0; background: transparent; border: none; border-radius: var(--radius-md); font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 400; color: var(--text3); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
     .tab svg { width: 18px; height: 18px; }
-    .tab.active {
-      background: var(--bg3);
-      color: var(--text1);
-      font-weight: 600;
-      border: 1px solid var(--border2);
-    }
+    .tab.active { background: var(--bg3); color: var(--text1); font-weight: 600; border: 1px solid var(--border2); }
     .tab:hover:not(.active) { color: var(--text2); }
 
-    /* Panels */
     .panel { display: none; }
     .panel.active { display: block; }
 
@@ -154,7 +107,7 @@
     .chat-text-input { flex: 1; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text1); font-size: 13px; outline: none; }
     .chat-send-btn { background: var(--accent); border: none; color: white; padding: 0 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; }
 
-    /* === RECORDS & RANKING === */
+    /* === RECORDS === */
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.5rem; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; }
     .stat-val { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--text1); margin-bottom: 4px; }
@@ -183,7 +136,6 @@
     .btn-action:hover { border-color: var(--accent); color: var(--accent); }
     .btn-action.success { background: rgba(29,190,138,0.1); border-color: var(--accent); color: var(--accent); }
 
-    /* Toast & Overlays */
     .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 1px solid var(--border2); padding: 9px 22px; border-radius: 24px; font-size: 13px; opacity: 0; transition: 0.25s; pointer-events: none; z-index: 999; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
@@ -192,31 +144,14 @@
 <body>
 <div class="app">
 
-  <div class="app-header">
-    <h1>Study Timer</h1>
-  </div>
+  <div class="app-header"><h1>Study Timer</h1></div>
 
   <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('timer')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-      タイマー
-    </button>
-    <button class="tab" onclick="switchTab('stopwatch')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>
-      計測
-    </button>
-    <button class="tab" onclick="switchTab('chat')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      ルーム
-    </button>
-    <button class="tab" onclick="switchTab('records')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>
-      記録
-    </button>
-    <button class="tab" onclick="switchTab('settings')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      設定
-    </button>
+    <button class="tab active" onclick="switchTab('timer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>タイマー</button>
+    <button class="tab" onclick="switchTab('stopwatch')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>計測</button>
+    <button class="tab" onclick="switchTab('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>ルーム</button>
+    <button class="tab" onclick="switchTab('records')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>記録</button>
+    <button class="tab" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定</button>
   </div>
 
   <div id="panel-timer" class="panel active">
@@ -233,14 +168,8 @@
       <div class="inp-grp"><input type="number" id="t-s" value="0" oninput="onCustomInput()"><span class="unit">s</span></div>
     </div>
     <div class="ring-wrap">
-      <svg width="220" height="220" viewBox="0 0 220 220">
-        <circle class="ring-bg" cx="110" cy="110" r="96"/>
-        <circle class="ring-fill" id="ring" cx="110" cy="110" r="96" stroke-dasharray="603" stroke-dashoffset="0"/>
-      </svg>
-      <div class="ring-center">
-        <div class="clock-big" id="t-display">05:00</div>
-        <div class="clock-status" id="t-status">準備完了</div>
-      </div>
+      <svg width="220" height="220" viewBox="0 0 220 220"><circle class="ring-bg" cx="110" cy="110" r="96"/><circle class="ring-fill" id="ring" cx="110" cy="110" r="96" stroke-dasharray="603" stroke-dashoffset="0"/></svg>
+      <div class="ring-center"><div class="clock-big" id="t-display">05:00</div><div class="clock-status" id="t-status">準備完了</div></div>
     </div>
     <div class="ctrl-row">
       <button class="ctrl-btn" onclick="resetTimer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
@@ -250,9 +179,7 @@
   </div>
 
   <div id="panel-stopwatch" class="panel">
-    <div class="sw-clock-wrap">
-      <div class="sw-main" id="sw-display">00:00<span class="sw-cs" id="sw-cs">.00</span></div>
-    </div>
+    <div class="sw-clock-wrap"><div class="sw-main" id="sw-display">00:00<span class="sw-cs" id="sw-cs">.00</span></div></div>
     <div class="ctrl-row">
       <button class="ctrl-btn" onclick="resetSW()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="ctrl-btn primary" id="sw-playbtn" onclick="toggleSW()"><svg id="sw-playicon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
@@ -286,45 +213,15 @@
   </div>
 
   <div id="panel-settings" class="panel">
-    
     <div class="settings-group">
-      <div class="settings-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M2 12A10 10 0 0 0 15 21.54A10 10 0 0 1 15 2.46A10 10 0 0 0 2 12Z"/></svg>
-        テーマ（背景色）
-      </div>
-      <div class="settings-row">
-        <span>カラーを選択</span>
-        <select class="settings-select" id="theme-select" onchange="changeTheme()">
-          <option value="default">ダーク (デフォルト)</option>
-          <option value="navy">ネイビーブルー</option>
-          <option value="forest">フォレストグリーン</option>
-          <option value="latte">カフェラテ (明るめ)</option>
-        </select>
-      </div>
+      <div class="settings-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M2 12A10 10 0 0 0 15 21.54A10 10 0 0 1 15 2.46A10 10 0 0 0 2 12Z"/></svg>テーマ（背景色）</div>
+      <div class="settings-row"><span>カラーを選択</span><select class="settings-select" id="theme-select" onchange="changeTheme()"><option value="default">ダーク (デフォルト)</option><option value="navy">ネイビーブルー</option><option value="forest">フォレストグリーン</option><option value="latte">カフェラテ (明るめ)</option></select></div>
     </div>
-
     <div class="settings-group">
-      <div class="settings-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        通知・サウンド
-      </div>
-      <div class="settings-row">
-        <span>チャット着信音</span>
-        <select class="settings-select" id="sound-select" onchange="saveSettings()">
-          <option value="chime">チャイム (♪)</option>
-          <option value="pop">ポップ (ポンッ)</option>
-          <option value="none">鳴らさない</option>
-        </select>
-      </div>
-      <div class="settings-row">
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <span>ブラウザ通知</span>
-          <span style="font-size:10px; color:var(--text3);">画面を開いている間にスマホ等へ通知します</span>
-        </div>
-        <button class="btn-action" id="notify-btn" onclick="requestNotificationPerm()">通知を許可する</button>
-      </div>
+      <div class="settings-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>通知・サウンド</div>
+      <div class="settings-row"><span>チャット着信音</span><select class="settings-select" id="sound-select" onchange="saveSettings()"><option value="chime">チャイム (♪)</option><option value="pop">ポップ (ポンッ)</option><option value="none">鳴らさない</option></select></div>
+      <div class="settings-row"><div style="display:flex; flex-direction:column; gap:4px;"><span>ブラウザ通知</span><span style="font-size:10px; color:var(--text3);">画面を閉じてもスマホ等へ通知します</span></div><button class="btn-action" id="notify-btn" onclick="requestNotificationPerm()">通知を許可する</button></div>
     </div>
-
   </div>
 
 </div>
@@ -333,6 +230,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
 <script>
   // ---- 設定（テーマと音）の管理 ----
@@ -370,7 +268,7 @@
   function saveSettings() {
     const sound = document.getElementById('sound-select').value;
     localStorage.setItem('study_sound', sound);
-    playNotificationSound(true); // 試し鳴らし
+    playNotificationSound(true);
   }
 
   // ---- 音を鳴らす（ブラウザ内蔵音源） ----
@@ -380,44 +278,30 @@
   function playNotificationSound(isTest = false) {
     const sndType = document.getElementById('sound-select').value;
     if (sndType === 'none' && !isTest) return;
-    
     if (!audioCtx) audioCtx = new AudioContext();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    osc.connect(gain); gain.connect(audioCtx.destination);
     
     if (sndType === 'chime' || sndType === 'none') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(1108.73, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.6);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.6);
     } else if (sndType === 'pop') {
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
   }
 
   // ---- スマホ/ブラウザへのプッシュ通知設定 ----
   function updateNotifyBtnUI() {
     const btn = document.getElementById('notify-btn');
-    if (!("Notification" in window)) {
-      btn.textContent = "この端末は非対応です";
-      btn.disabled = true;
-    } else if (Notification.permission === "granted") {
-      btn.textContent = "許可済み ✓";
-      btn.classList.add('success');
-    }
+    if (!("Notification" in window)) { btn.textContent = "この端末は非対応です"; btn.disabled = true; }
+    else if (Notification.permission === "granted") { btn.textContent = "許可済み ✓"; btn.classList.add('success'); }
   }
 
   function requestNotificationPerm() {
@@ -438,7 +322,6 @@
     }
   }
 
-
   // ---- Firebase設定 ----
   const firebaseConfig = { databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app" };
   firebase.initializeApp(firebaseConfig);
@@ -446,13 +329,11 @@
 
   let myClientId = localStorage.getItem('chat_client_id') || ('user_' + Math.random().toString(36).substr(2, 9));
   localStorage.setItem('chat_client_id', myClientId);
-  
   const savedName = localStorage.getItem('chat_user_name') || '名無し';
   document.getElementById('chat-name').value = savedName;
   document.getElementById('chat-name').addEventListener('input', e => localStorage.setItem('chat_user_name', e.target.value));
   document.getElementById('chat-text').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
 
-  // 初回ロードで通知の暴発を防ぐ
   let isInitialLoad = true;
   setTimeout(() => { isInitialLoad = false; }, 2000); 
   let latestMsgId = null;
@@ -470,13 +351,10 @@
     let lastMsg = null;
 
     Object.keys(data).forEach(key => {
-      const item = data[key];
-      lastMsg = item;
-
+      const item = data[key]; lastMsg = item;
       if (!item.dataType || item.dataType === 'message') {
         const isMe = item.clientId === myClientId;
-        const div = document.createElement('div');
-        div.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+        const div = document.createElement('div'); div.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
         div.innerHTML = `<div class="chat-user">${item.name}</div><div class="chat-bubble">${item.text}</div>`;
         msgsContainer.appendChild(div);
       }
@@ -485,7 +363,6 @@
       }
     });
 
-    // 新着チャットの受信時に通知を発生させる
     if (!isInitialLoad && lastMsg && lastMsg.timestamp !== latestMsgId) {
       if (lastMsg.clientId !== myClientId && (!lastMsg.dataType || lastMsg.dataType === 'message')) {
         playNotificationSound();
@@ -494,17 +371,14 @@
       latestMsgId = lastMsg.timestamp;
     }
 
-    // ランキングの描画
     const rankArr = Object.keys(rankMap).map(id => ({ id, ...rankMap[id] })).filter(u => u.totalSecs > 0).sort((a, b) => b.totalSecs - a.totalSecs);
     if (rankArr.length === 0) rankListEl.innerHTML = `<div style="padding:1rem;text-align:center;color:var(--text3);font-size:12px;">参加者なし</div>`;
     else rankListEl.innerHTML = rankArr.map((u, i) => `<div class="rank-row rank-${i+1} ${u.id===myClientId?'is-me':''}"><div class="rank-num">${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-time">${fmtSec(u.totalSecs)}</div></div>`).join('');
-
     msgsContainer.scrollTop = msgsContainer.scrollHeight;
   });
 
   function sendChatMessage() {
-    const text = document.getElementById('chat-text').value.trim();
-    if (!text) return;
+    const text = document.getElementById('chat-text').value.trim(); if (!text) return;
     chatRef.push({ dataType: 'message', clientId: myClientId, name: document.getElementById('chat-name').value || '名無し', text: text, timestamp: firebase.database.ServerValue.TIMESTAMP });
     document.getElementById('chat-text').value = '';
   }
@@ -523,8 +397,7 @@
   function switchTab(name) {
     ['timer','stopwatch','chat','records','settings'].forEach((n,i) => {
       document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
-      const el = document.getElementById('panel-'+n);
-      if(el) el.classList.toggle('active', n === name);
+      const el = document.getElementById('panel-'+n); if(el) el.classList.toggle('active', n === name);
     });
     if (name === 'records') renderRecords();
   }
@@ -547,10 +420,8 @@
   function updateSWUI() { let ms=swElapsed, h=Math.floor(ms/3600000); ms%=3600000; let m=Math.floor(ms/60000); ms%=60000; let s=Math.floor(ms/1000); let cs=Math.floor((ms%1000)/10); document.getElementById('sw-display').childNodes[0].nodeValue = h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`; document.getElementById('sw-cs').textContent='.'+pad(cs); }
 
   function autoSave(t, s) {
-    const n = new Date();
-    records.unshift({ id: Date.now(), type: t, secs: s, date: n.toLocaleDateString('ja-JP'), time: n.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) });
-    localStorage.setItem('study_records_v3', JSON.stringify(records));
-    sendSyncSignal();
+    const n = new Date(); records.unshift({ id: Date.now(), type: t, secs: s, date: n.toLocaleDateString('ja-JP'), time: n.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) });
+    localStorage.setItem('study_records_v3', JSON.stringify(records)); sendSyncSignal();
   }
   function delRecord(id) { records=records.filter(r=>r.id!==id); localStorage.setItem('study_records_v3', JSON.stringify(records)); sendSyncSignal(); renderRecords(); }
   function renderRecords() {
@@ -570,6 +441,31 @@
   loadSettings();
   updateTimerUI();
   setTimeout(sendSyncSignal, 1000);
+
+  // ========================================================
+  // サービスワーカーの登録と鍵（VAPIDキー）の設定
+  // ========================================================
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+    .then((registration) => {
+      console.log('サービスワーカーの登録に成功しました！');
+      const messaging = firebase.messaging();
+      
+      messaging.getToken({ 
+        vapidKey: 'BMpm4PTpHTOHE8TkPcPOgXjP1posaudzSpVEMczaHOSNasUm5Hlt1ux4q6qvRUPXgcqkwkrc9EjOjI7FCrkjV54' 
+      }).then((currentToken) => {
+        if (currentToken) {
+          console.log('通知用のトークンを取得しました:', currentToken);
+        } else {
+          console.log('トークンが取得できませんでした。通知の許可が必要です。');
+        }
+      }).catch((err) => {
+        console.log('トークンの取得中にエラーが発生しました:', err);
+      });
+    }).catch((err) => {
+      console.log('サービスワーカーの登録に失敗しました:', err);
+    });
+  }
 </script>
 </body>
 </html>
