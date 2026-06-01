@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>学習タイマー ＆ リアルタイムチャット</title>
+  <title>シンプル学習タイマー ＆ チャット</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -43,7 +43,6 @@
       max-width: 480px;
     }
 
-    /* Header */
     .app-header {
       text-align: center;
       margin-bottom: 2rem;
@@ -158,7 +157,7 @@
       position: relative;
       width: 220px;
       height: 220px;
-      margin: 0 auto 1.25rem;
+      margin: 0 auto 1.5rem;
     }
     .ring-wrap svg { transform: rotate(-90deg); }
     .ring-bg { fill: none; stroke: var(--bg3); stroke-width: 8; }
@@ -186,30 +185,6 @@
       text-transform: uppercase;
       color: var(--text3);
     }
-
-    /* Tags */
-    .tag-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 1.25rem;
-    }
-    .tag-label { font-size: 11px; color: var(--text3); letter-spacing: 1px; }
-    .tag-btn {
-      padding: 4px 12px;
-      border: 1px solid var(--border2);
-      border-radius: 14px;
-      background: transparent;
-      color: var(--text2);
-      font-family: 'Sora', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .tag-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .tag-btn.sel { background: rgba(29,190,138,0.15); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
     /* Controls */
     .ctrl-row {
@@ -250,7 +225,7 @@
     /* === STOPWATCH === */
     .sw-clock-wrap {
       text-align: center;
-      padding: 2rem 0 1.25rem;
+      padding: 2rem 0 1.5rem;
     }
     .sw-main {
       font-family: 'DM Mono', monospace;
@@ -315,7 +290,7 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      height: 350px;
+      height: 380px;
       overflow: hidden;
     }
     .chat-messages {
@@ -432,28 +407,9 @@
       letter-spacing: 0.5px;
     }
     .rec-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       margin-bottom: 0.75rem;
-      flex-wrap: wrap;
-      gap: 8px;
     }
     .rec-header h3 { font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
-    .filter-row { display: flex; gap: 5px; flex-wrap: wrap; }
-    .filter-btn {
-      padding: 3px 10px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: transparent;
-      font-family: 'Sora', sans-serif;
-      font-size: 11px;
-      color: var(--text3);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .filter-btn.active { border-color: var(--accent); color: var(--accent); }
-    .filter-btn:hover { color: var(--text2); border-color: var(--border2); }
     .rec-list { display: flex; flex-direction: column; gap: 6px; }
     .rec-card {
       background: var(--bg2);
@@ -463,20 +419,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: border-color 0.15s;
     }
-    .rec-card:hover { border-color: var(--border2); }
-    .rec-subject { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+    .rec-type { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
     .rec-meta { font-size: 11px; color: var(--text3); }
-    .rec-badge {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 8px;
-      font-size: 10px;
-      font-weight: 400;
-    }
-    .badge-timer { background: rgba(29,190,138,0.12); color: var(--accent); }
-    .badge-sw { background: rgba(224,90,48,0.12); color: #e0844a; }
     .rec-dur { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 400; text-align: right; }
     .rec-actions { display: flex; align-items: center; gap: 8px; }
     .del-btn {
@@ -501,13 +446,6 @@
     }
     .empty-rec svg { width: 36px; height: 36px; opacity: 0.3; display: block; margin: 0 auto 0.75rem; }
 
-    /* Tag colors */
-    .tag-math { color: #6a9ce8; }
-    .tag-eng  { color: #e07070; }
-    .tag-sci  { color: #5cc87a; }
-    .tag-hist { color: #e0a048; }
-    .tag-free { color: var(--text2); }
-
     /* Toast */
     .toast {
       position: fixed;
@@ -528,7 +466,7 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Alarm */
+    /* Alarm (Simple Pop) */
     .alarm-overlay {
       display: none;
       position: fixed;
@@ -573,11 +511,6 @@
     }
     .alarm-close:hover { background: var(--accent2); }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
@@ -597,7 +530,7 @@
     </button>
     <button class="tab" onclick="switchTab('stopwatch')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>
-      ストップウォッチ
+      計測
     </button>
     <button class="tab" onclick="switchTab('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -647,15 +580,6 @@
       </div>
     </div>
 
-    <div class="tag-row">
-      <span class="tag-label">科目</span>
-      <button class="tag-btn sel tag-math" onclick="selTag(this,'数学','t')">数学</button>
-      <button class="tag-btn tag-eng" onclick="selTag(this,'英語','t')">英語</button>
-      <button class="tag-btn tag-sci" onclick="selTag(this,'理科','t')">理科</button>
-      <button class="tag-btn tag-hist" onclick="selTag(this,'社会','t')">社会</button>
-      <button class="tag-btn tag-free" onclick="selTag(this,'自由','t')">自由</button>
-    </div>
-
     <div class="ctrl-row">
       <button class="ctrl-btn" onclick="resetTimer()" title="リセット">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -674,15 +598,6 @@
     <div class="sw-clock-wrap">
       <div class="sw-main" id="sw-display">00:00<span class="sw-cs" id="sw-cs">.00</span></div>
       <div class="sw-status" id="sw-status">待機中</div>
-    </div>
-
-    <div class="tag-row">
-      <span class="tag-label">科目</span>
-      <button class="tag-btn sel tag-math" onclick="selTag(this,'数学','sw')">数学</button>
-      <button class="tag-btn tag-eng" onclick="selTag(this,'英語','sw')">英語</button>
-      <button class="tag-btn tag-sci" onclick="selTag(this,'理科','sw')">理科</button>
-      <button class="tag-btn tag-hist" onclick="selTag(this,'社会','sw')">社会</button>
-      <button class="tag-btn tag-free" onclick="selTag(this,'自由','sw')">自由</button>
     </div>
 
     <div class="ctrl-row">
@@ -738,14 +653,6 @@
 
     <div class="rec-header">
       <h3>学習記録</h3>
-      <div class="filter-row">
-        <button class="filter-btn active" onclick="filterRec(this,'all')">すべて</button>
-        <button class="filter-btn" onclick="filterRec(this,'数学')">数学</button>
-        <button class="filter-btn" onclick="filterRec(this,'英語')">英語</button>
-        <button class="filter-btn" onclick="filterRec(this,'理科')">理科</button>
-        <button class="filter-btn" onclick="filterRec(this,'社会')">社会</button>
-        <button class="filter-btn" onclick="filterRec(this,'自由')">自由</button>
-      </div>
     </div>
 
     <div class="rec-list" id="rec-list"></div>
@@ -770,15 +677,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <script>
-  // ---- Firebaseの設定 ----
+  // ---- Firebase設定（シンガポールサーバー） ----
   const firebaseConfig = {
-    databaseURL: "https://study-timer-2350b-default-rtdb.firebaseio.com/"
+    databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app"
   };
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
   const chatRef = database.ref('chat_messages');
 
-  // ---- クライアントの固有IDを生成（チャットの左右判定用） ----
+  // クライアントID
   let myClientId = localStorage.getItem('chat_client_id');
   if (!myClientId) {
     myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -788,23 +695,20 @@
   // 名前の記憶
   const savedName = localStorage.getItem('chat_user_name');
   if (savedName) document.getElementById('chat-name').value = savedName;
-
   document.getElementById('chat-name').addEventListener('input', (e) => {
     localStorage.setItem('chat_user_name', e.target.value);
   });
 
-  // Enterキーで送信
+  // Enter送信
   document.getElementById('chat-text').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendChatMessage();
   });
 
-
   // ---- State ----
   let activeTab = 'timer';
-  let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null, timerTag = '数学';
-  let swElapsed = 0, swRunning = false, swInterval = null, swTag = '数学', swLaps = [], swLastLap = 0;
-  let records = JSON.parse(localStorage.getItem('study_records_v2') || '[]');
-  let currentFilter = 'all';
+  let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
+  let swElapsed = 0, swRunning = false, swInterval = null, swLaps = [], swLastLap = 0;
+  let records = JSON.parse(localStorage.getItem('study_records_v3') || '[]');
 
   const CIRCUM = 2 * Math.PI * 96;
 
@@ -818,13 +722,6 @@
     activeTab = name;
     if (name === 'records') renderRecords();
     if (name === 'chat') scrollChatToBottom();
-  }
-
-  // ---- Tag ----
-  function selTag(btn, tag, mode) {
-    btn.closest('.tag-row').querySelectorAll('.tag-btn').forEach(b => b.classList.remove('sel'));
-    btn.classList.add('sel');
-    if (mode === 't') timerTag = tag; else swTag = tag;
   }
 
   // ---- TIMER ----
@@ -850,9 +747,7 @@
     timerRemain = timerTotal;
   }
 
-  function toggleTimer() {
-    timerRunning ? pauseTimer() : startTimer();
-  }
+  function toggleTimer() { timerRunning ? pauseTimer() : startTimer(); }
 
   function startTimer() {
     if (timerRemain <= 0) { syncTimer(); if (timerTotal <= 0) return; }
@@ -873,7 +768,6 @@
     document.getElementById('t-status').textContent = '一時停止';
   }
 
-  // （中略）既存タイマー機能を維持
   function resetTimer() {
     pauseTimer();
     syncTimer();
@@ -895,16 +789,16 @@
     timerRunning = false;
     setTimerBtn(false);
     document.getElementById('t-status').textContent = '完了！';
-    document.getElementById('alarm-title').textContent = timerTag + 'の時間が終わりました！';
+    document.getElementById('alarm-title').textContent = '時間になりました！';
     document.getElementById('alarm-msg').textContent = fmtSec(timerTotal) + ' 間、よく頑張りました！\nお疲れさまです。';
     document.getElementById('alarm-overlay').classList.add('show');
-    autoSave('タイマー', timerTotal, timerTag);
+    autoSave('タイマー', timerTotal);
   }
 
   function saveTimerRecord() {
     const elapsed = timerTotal - timerRemain;
     if (elapsed < 5) { showToast('5秒以上学習してから保存できます'); return; }
-    autoSave('タイマー', elapsed, timerTag);
+    autoSave('タイマー', elapsed);
     showToast('記録を保存しました ✓');
   }
 
@@ -912,19 +806,13 @@
     document.getElementById('t-display').textContent = fmtSec(timerRemain);
     const ratio = timerTotal > 0 ? timerRemain / timerTotal : 1;
     document.getElementById('ring').style.strokeDashoffset = CIRCUM * (1 - ratio);
-    const pct = ratio < 0.2 ? '#e05a30' : '#1dbe8a';
-    document.getElementById('ring').style.stroke = pct;
+    document.getElementById('ring').style.stroke = ratio < 0.2 ? '#e05a30' : '#1dbe8a';
   }
 
-  function closeAlarm() {
-    document.getElementById('alarm-overlay').classList.remove('show');
-  }
+  function closeAlarm() { document.getElementById('alarm-overlay').classList.remove('show'); }
 
   // ---- STOPWATCH ----
-  function toggleSW() {
-    swRunning ? pauseSW() : startSW();
-  }
-
+  function toggleSW() { swRunning ? pauseSW() : startSW(); }
   function startSW() {
     swRunning = true;
     setSWBtn(true);
@@ -932,14 +820,12 @@
     const base = Date.now() - swElapsed;
     swInterval = setInterval(() => { swElapsed = Date.now() - base; updateSWUI(); }, 30);
   }
-
   function pauseSW() {
     swRunning = false;
     clearInterval(swInterval);
     setSWBtn(false);
     document.getElementById('sw-status').textContent = '一時停止';
   }
-
   function resetSW() {
     pauseSW();
     swElapsed = 0; swLaps = []; swLastLap = 0;
@@ -947,7 +833,6 @@
     renderLaps();
     document.getElementById('sw-status').textContent = '待機中';
   }
-
   function setSWBtn(running) {
     const btn = document.getElementById('sw-playbtn');
     const icon = document.getElementById('sw-playicon');
@@ -956,20 +841,17 @@
       ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
       : '<polygon points="5 3 19 12 5 21 5 3"/>';
   }
-
   function lapSW() {
     if (!swRunning && swElapsed === 0) return;
     swLaps.push({ total: swElapsed, lap: swElapsed - swLastLap });
     swLastLap = swElapsed;
     renderLaps();
   }
-
   function saveSWRecord() {
     if (swElapsed < 5000) { showToast('5秒以上計測してから保存できます'); return; }
-    autoSave('ストップウォッチ', Math.floor(swElapsed / 1000), swTag);
+    autoSave('ストップウォッチ', Math.floor(swElapsed / 1000));
     showToast('記録を保存しました ✓');
   }
-
   function updateSWUI() {
     let ms = swElapsed;
     const h = Math.floor(ms / 3600000); ms %= 3600000;
@@ -980,7 +862,6 @@
     document.getElementById('sw-display').childNodes[0].nodeValue = main;
     document.getElementById('sw-cs').textContent = '.' + pad(cs);
   }
-
   function renderLaps() {
     const el = document.getElementById('lap-list');
     if (swLaps.length === 0) {
@@ -1000,46 +881,37 @@
     }).join('');
   }
 
-  // ---- CHAT FUNCTIONS (Firebase) ----
+  // ---- CHAT (Firebase) ----
   function sendChatMessage() {
     const nameInput = document.getElementById('chat-name');
     const textInput = document.getElementById('chat-text');
     const name = nameInput.value.trim() || '名無し';
     const text = textInput.value.trim();
-
     if (!text) return;
 
-    // Firebaseにメッセージをプッシュ送信
     chatRef.push({
       clientId: myClientId,
       name: name,
       text: text,
       timestamp: firebase.database.ServerValue.TIMESTAMP
     });
-
     textInput.value = '';
   }
 
-  // Firebaseからメッセージをリアルタイム受信
   chatRef.limitToLast(50).on('value', (snapshot) => {
     const msgsContainer = document.getElementById('chat-messages');
     msgsContainer.innerHTML = '';
-    
     const data = snapshot.val();
     if (!data) return;
 
-    // オブジェクトを配列に変換して並び替え
     const sortedMsgs = Object.keys(data).map(key => data[key]);
-
     sortedMsgs.forEach(msg => {
       const isMe = msg.clientId === myClientId;
       const msgRow = document.createElement('div');
       msgRow.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
-
       const userLabel = document.createElement('div');
       userLabel.className = 'chat-user';
       userLabel.textContent = msg.name;
-
       const bubble = document.createElement('div');
       bubble.className = 'chat-bubble';
       bubble.textContent = msg.text;
@@ -1048,7 +920,6 @@
       msgRow.appendChild(bubble);
       msgsContainer.appendChild(msgRow);
     });
-
     scrollChatToBottom();
   });
 
@@ -1057,29 +928,21 @@
     msgsContainer.scrollTop = msgsContainer.scrollHeight;
   }
 
-
   // ---- RECORDS ----
-  function autoSave(type, secs, tag) {
+  function autoSave(type, secs) {
     const now = new Date();
     records.unshift({
-      id: Date.now(), type, secs, tag,
+      id: Date.now(), type, secs,
       date: now.toLocaleDateString('ja-JP'),
       time: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
     });
-    localStorage.setItem('study_records_v2', JSON.stringify(records));
+    localStorage.setItem('study_records_v3', JSON.stringify(records));
     if (activeTab === 'records') renderRecords();
-  }
-
-  function filterRec(btn, tag) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = tag;
-    renderRecords();
   }
 
   function deleteRecord(id) {
     records = records.filter(r => r.id !== id);
-    localStorage.setItem('study_records_v2', JSON.stringify(records));
+    localStorage.setItem('study_records_v3', JSON.stringify(records));
     renderRecords();
   }
 
@@ -1091,22 +954,15 @@
     document.getElementById('stat-sessions').textContent = todayRecs.length;
     document.getElementById('stat-streak').textContent = calcStreak() + '日';
 
-    const filtered = currentFilter === 'all' ? records : records.filter(r => r.tag === currentFilter);
     const list = document.getElementById('rec-list');
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-rec">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
-        まだ記録がありません<br>タイマーやストップウォッチで学習してみましょう！</div>`;
+    if (records.length === 0) {
+      list.innerHTML = `<div class="empty-rec">まだ記録がありません</div>`;
       return;
     }
-    const tagCls = { 数学: 'tag-math', 英語: 'tag-eng', 理科: 'tag-sci', 社会: 'tag-hist', 自由: 'tag-free' };
-    const typeCls = { タイマー: 'badge-timer', ストップウォッチ: 'badge-sw' };
-    list.innerHTML = filtered.map(r => `
+    list.innerHTML = records.map(r => `
       <div class="rec-card">
         <div>
-          <div class="rec-subject ${tagCls[r.tag] || 'tag-free'}">
-            ${r.tag}<span class="rec-badge ${typeCls[r.type] || ''}">${r.type}</span>
-          </div>
+          <div class="rec-type">${r.type}</div>
           <div class="rec-meta">${r.date} ${r.time}</div>
         </div>
         <div class="rec-actions">
@@ -1140,7 +996,6 @@
     return `${pad(m)}:${pad(s)}.${pad(cs)}`;
   }
   function pad(n) { return String(n).padStart(2, '0'); }
-
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
