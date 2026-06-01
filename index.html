@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>シンプル学習タイマー ＆ チャット（ランキング付）</title>
+  <title>シンプル学習タイマー ＆ ルーム</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -22,7 +22,7 @@
       --accent2: #0f8a62;
       --warn: #e05a30;
       --warn2: #b03e1e;
-      --gold: #ffd700;
+      --system-msg: #3a86ff;
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 18px;
@@ -221,4 +221,832 @@
     .ctrl-btn.primary.running { background: var(--warn); border-color: var(--warn); }
     .ctrl-btn.primary.running:hover { background: var(--warn2); border-color: var(--warn2); }
     .ctrl-btn.save-btn { border-color: rgba(29,190,138,0.3); color: var(--accent); font-size: 12px; font-family: 'Sora', sans-serif; width: auto; border-radius: 24px; padding: 0 18px; gap: 6px; }
-    .ctrl-btn.save-btn:hover { background: rgba(29,190,
+    .ctrl-btn.save-btn:hover { background: rgba(29,190,138,0.1); }
+
+    /* === STOPWATCH === */
+    .sw-clock-wrap {
+      text-align: center;
+      padding: 2rem 0 1.5rem;
+    }
+    .sw-main {
+      font-family: 'DM Mono', monospace;
+      font-size: 64px;
+      font-weight: 300;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .sw-cs {
+      font-family: 'DM Mono', monospace;
+      font-size: 30px;
+      font-weight: 300;
+      color: var(--text2);
+      letter-spacing: 0;
+    }
+    .sw-status {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-top: 6px;
+    }
+
+    /* Laps */
+    .lap-list {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+    .lap-list::-webkit-scrollbar { width: 4px; }
+    .lap-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+    .lap-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .lap-item:last-child { border-bottom: none; }
+    .lap-num { font-size: 11px; color: var(--text3); min-width: 48px; }
+    .lap-time { font-family: 'DM Mono', monospace; font-weight: 500; }
+    .lap-total { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); }
+    .lap-item.best .lap-time { color: var(--accent); }
+    .lap-item.worst .lap-time { color: var(--warn); }
+    .no-laps {
+      padding: 2rem;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.8;
+    }
+
+    /* === CHAT & ROOM PANEL === */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      height: 400px;
+      overflow: hidden;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-msg-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+    }
+    .chat-msg-row.me {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+    .chat-msg-row.other {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+    
+    /* システム通知（勉強記録用バブル） */
+    .chat-msg-row.system {
+      max-width: 100%;
+      width: 100%;
+      align-self: center;
+      align-items: center;
+    }
+    .chat-msg-row.system .chat-bubble {
+      background: rgba(58, 134, 255, 0.1);
+      color: #90b4ff;
+      border: 1px solid rgba(58, 134, 255, 0.2);
+      font-size: 12px;
+      border-radius: 20px;
+      padding: 6px 16px;
+      text-align: center;
+    }
+    .chat-msg-row.system .chat-user { display: none; }
+
+    .chat-user {
+      font-size: 10px;
+      color: var(--text3);
+      margin-bottom: 2px;
+      padding: 0 4px;
+    }
+    .chat-bubble {
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    .chat-msg-row.me .chat-bubble {
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg-row.other .chat-bubble {
+      background: var(--bg3);
+      color: var(--text1);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .chat-input-area {
+      display: flex;
+      padding: 8px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      gap: 6px;
+    }
+    .chat-name-input {
+      width: 70px;
+      padding: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text1);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    .chat-text-input {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text1);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .chat-send-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chat-send-btn:hover { background: var(--accent2); }
+
+    /* === RECORDS === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text1);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 0.5px;
+    }
+    .rec-header {
+      margin-bottom: 0.75rem;
+    }
+    .rec-header h3 { font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+    .rec-list { display: flex; flex-direction: column; gap: 6px; }
+    .rec-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rec-type { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .rec-meta { font-size: 11px; color: var(--text3); }
+    .rec-dur { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 400; text-align: right; }
+    .rec-actions { display: flex; align-items: center; gap: 8px; }
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+    .del-btn:hover { color: var(--warn); }
+    .del-btn svg { width: 15px; height: 15px; }
+    .empty-rec {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text3);
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text1);
+      padding: 9px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Alarm overlay */
+    .alarm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    .alarm-overlay.show { display: flex; }
+    .alarm-box {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+    }
+    .alarm-icon {
+      width: 56px; height: 56px;
+      background: rgba(29,190,138,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .alarm-icon svg { width: 26px; height: 26px; color: var(--accent); }
+    .alarm-box h3 { font-size: 17px; font-weight: 600; margin-bottom: 0.5rem; }
+    .alarm-box p { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.7; }
+    .alarm-close {
+      padding: 10px 28px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .alarm-close:hover { background: var(--accent2); }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="app-header">
+    <h1>Study Room</h1>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('timer')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      タイマー
+    </button>
+    <button class="tab" onclick="switchTab('stopwatch')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>
+      計測
+    </button>
+    <button class="tab" onclick="switchTab('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      ルーム
+    </button>
+    <button class="tab" onclick="switchTab('records')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>
+      記録
+    </button>
+  </div>
+
+  <div id="panel-timer" class="panel active">
+    <div class="preset-row">
+      <button class="preset-btn sel" onclick="setPreset(this,5)">5分</button>
+      <button class="preset-btn" onclick="setPreset(this,10)">10分</button>
+      <button class="preset-btn" onclick="setPreset(this,15)">15分</button>
+      <button class="preset-btn" onclick="setPreset(this,25)">25分</button>
+      <button class="preset-btn" onclick="setPreset(this,45)">45分</button>
+      <button class="preset-btn" onclick="setPreset(this,60)">60分</button>
+    </div>
+
+    <div class="custom-inputs">
+      <div class="inp-grp">
+        <input type="number" id="t-h" min="0" max="9" value="0" oninput="onCustomInput()">
+        <span class="unit">h</span>
+      </div>
+      <span class="sep">:</span>
+      <div class="inp-grp">
+        <input type="number" id="t-m" min="0" max="59" value="5" oninput="onCustomInput()">
+        <span class="unit">m</span>
+      </div>
+      <span class="sep">:</span>
+      <div class="inp-grp">
+        <input type="number" id="t-s" min="0" max="59" value="0" oninput="onCustomInput()">
+        <span class="unit">s</span>
+      </div>
+    </div>
+
+    <div class="ring-wrap">
+      <svg width="220" height="220" viewBox="0 0 220 220">
+        <circle class="ring-bg" cx="110" cy="110" r="96"/>
+        <circle class="ring-fill" id="ring" cx="110" cy="110" r="96" stroke-dasharray="603" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-center">
+        <div class="clock-big" id="t-display">05:00</div>
+        <div class="clock-status" id="t-status">準備完了</div>
+      </div>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="ctrl-btn" onclick="resetTimer()" title="リセット">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button class="ctrl-btn primary" id="t-playbtn" onclick="toggleTimer()">
+        <svg id="t-playicon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="ctrl-btn save-btn" onclick="saveTimerRecord()" title="記録を保存">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        保存
+      </button>
+    </div>
+  </div>
+
+  <div id="panel-stopwatch" class="panel">
+    <div class="sw-clock-wrap">
+      <div class="sw-main" id="sw-display">00:00<span class="sw-cs" id="sw-cs">.00</span></div>
+      <div class="sw-status" id="sw-status">待機中</div>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="ctrl-btn" onclick="resetSW()" title="リセット">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button class="ctrl-btn primary" id="sw-playbtn" onclick="toggleSW()">
+        <svg id="sw-playicon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="lapSW()" title="ラップ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      </button>
+    </div>
+
+    <div class="lap-list" id="lap-list">
+      <div class="no-laps">▶ を押してスタート<br>フラグボタンでラップを記録</div>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-top:0.75rem;">
+      <button class="ctrl-btn save-btn" onclick="saveSWRecord()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        この記録を保存
+      </button>
+    </div>
+  </div>
+
+  <div id="panel-chat" class="panel">
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-name-input" id="chat-name" placeholder="名前" value="名無し">
+        <input type="text" class="chat-text-input" id="chat-text" placeholder="メッセージを入力...">
+        <button class="chat-send-btn" onclick="sendChatMessage()">送信</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-records" class="panel">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-today">0h 0m</div>
+        <div class="stat-lbl">今日の学習</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-sessions">0</div>
+        <div class="stat-lbl">セッション数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-streak">0日</div>
+        <div class="stat-lbl">連続日数</div>
+      </div>
+    </div>
+
+    <div class="rec-header">
+      <h3>学習記録</h3>
+    </div>
+
+    <div class="rec-list" id="rec-list"></div>
+  </div>
+
+</div>
+
+<div class="alarm-overlay" id="alarm-overlay">
+  <div class="alarm-box">
+    <div class="alarm-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3 id="alarm-title">時間になりました！</h3>
+    <p id="alarm-msg">お疲れさまです。<br>少し休憩をとりましょう。</p>
+    <button class="alarm-close" onclick="closeAlarm()">閉じる</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+  // ---- Firebase設定（シンガポールサーバー） ----
+  const firebaseConfig = {
+    databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+  
+  // 確実に動いているフォルダ「chat_messages」のみを利用します
+  const chatRef = database.ref('chat_messages');
+
+  // クライアントID
+  let myClientId = localStorage.getItem('chat_client_id');
+  if (!myClientId) {
+    myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chat_client_id', myClientId);
+  }
+
+  // 名前の記憶
+  const savedName = localStorage.getItem('chat_user_name');
+  if (savedName) document.getElementById('chat-name').value = savedName;
+  document.getElementById('chat-name').addEventListener('input', (e) => {
+    localStorage.setItem('chat_user_name', e.target.value);
+  });
+
+  // Enter送信
+  document.getElementById('chat-text').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendChatMessage();
+  });
+
+  // ---- State ----
+  let activeTab = 'timer';
+  let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
+  let swElapsed = 0, swRunning = false, swInterval = null, swLaps = [], swLastLap = 0;
+  let records = JSON.parse(localStorage.getItem('study_records_v3') || '[]');
+
+  const CIRCUM = 2 * Math.PI * 96;
+
+  // ---- Tabs ----
+  function switchTab(name) {
+    ['timer','stopwatch','chat','records'].forEach((n,i) => {
+      document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
+      const el = document.getElementById('panel-'+n);
+      if(el) el.classList.toggle('active', n === name);
+    });
+    activeTab = name;
+    if (name === 'records') renderRecords();
+    if (name === 'chat') scrollChatToBottom();
+  }
+
+  // ---- TIMER ----
+  function setPreset(btn, mins) {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    document.getElementById('t-h').value = Math.floor(mins / 60);
+    document.getElementById('t-m').value = mins % 60;
+    document.getElementById('t-s').value = 0;
+    if (!timerRunning) { timerTotal = mins * 60; timerRemain = timerTotal; updateTimerUI(); }
+  }
+
+  function onCustomInput() {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('sel'));
+    if (!timerRunning) { syncTimer(); updateTimerUI(); }
+  }
+
+  function syncTimer() {
+    const h = parseInt(document.getElementById('t-h').value) || 0;
+    const m = parseInt(document.getElementById('t-m').value) || 0;
+    const s = parseInt(document.getElementById('t-s').value) || 0;
+    timerTotal = h * 3600 + m * 60 + s;
+    timerRemain = timerTotal;
+  }
+
+  function toggleTimer() { timerRunning ? pauseTimer() : startTimer(); }
+
+  function startTimer() {
+    if (timerRemain <= 0) { syncTimer(); if (timerTotal <= 0) return; }
+    timerRunning = true;
+    setTimerBtn(true);
+    document.getElementById('t-status').textContent = '学習中...';
+    timerInterval = setInterval(() => {
+      timerRemain--;
+      updateTimerUI();
+      if (timerRemain <= 0) timerDone();
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    setTimerBtn(false);
+    document.getElementById('t-status').textContent = '一時停止';
+  }
+
+  function resetTimer() {
+    pauseTimer();
+    syncTimer();
+    updateTimerUI();
+    document.getElementById('t-status').textContent = '準備完了';
+  }
+
+  function setTimerBtn(running) {
+    const btn = document.getElementById('t-playbtn');
+    const icon = document.getElementById('t-playicon');
+    btn.classList.toggle('running', running);
+    icon.innerHTML = running
+      ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      : '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+
+  function timerDone() {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    setTimerBtn(false);
+    document.getElementById('t-status').textContent = '完了！';
+    document.getElementById('alarm-title').textContent = '時間になりました！';
+    document.getElementById('alarm-msg').textContent = fmtSec(timerTotal) + ' 間、よく頑張りました！\nお疲れさまです。';
+    document.getElementById('alarm-overlay').classList.add('show');
+    autoSave('タイマー', timerTotal);
+  }
+
+  function saveTimerRecord() {
+    const elapsed = timerTotal - timerRemain;
+    if (elapsed < 5) { showToast('5秒以上学習してから保存できます'); return; }
+    autoSave('タイマー', elapsed);
+    showToast('記録を保存しました ✓');
+  }
+
+  function updateTimerUI() {
+    document.getElementById('t-display').textContent = fmtSec(timerRemain);
+    const ratio = timerTotal > 0 ? timerRemain / timerTotal : 1;
+    document.getElementById('ring').style.strokeDashoffset = CIRCUM * (1 - ratio);
+    document.getElementById('ring').style.stroke = ratio < 0.2 ? '#e05a30' : '#1dbe8a';
+  }
+
+  function closeAlarm() { document.getElementById('alarm-overlay').classList.remove('show'); }
+
+  // ---- STOPWATCH ----
+  function toggleSW() { swRunning ? pauseSW() : startSW(); }
+  function startSW() {
+    swRunning = true;
+    setSWBtn(true);
+    document.getElementById('sw-status').textContent = '計測中...';
+    const base = Date.now() - swElapsed;
+    swInterval = setInterval(() => { swElapsed = Date.now() - base; updateSWUI(); }, 30);
+  }
+  function pauseSW() {
+    swRunning = false;
+    clearInterval(swInterval);
+    setSWBtn(false);
+    document.getElementById('sw-status').textContent = '一時停止';
+  }
+  function resetSW() {
+    pauseSW();
+    swElapsed = 0; swLaps = []; swLastLap = 0;
+    updateSWUI();
+    renderLaps();
+    document.getElementById('sw-status').textContent = '待機中';
+  }
+  function setSWBtn(running) {
+    const btn = document.getElementById('sw-playbtn');
+    const icon = document.getElementById('sw-playicon');
+    btn.classList.toggle('running', running);
+    icon.innerHTML = running
+      ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      : '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+  function lapSW() {
+    if (!swRunning && swElapsed === 0) return;
+    swLaps.push({ total: swElapsed, lap: swElapsed - swLastLap });
+    swLastLap = swElapsed;
+    renderLaps();
+  }
+  function saveSWRecord() {
+    if (swElapsed < 5000) { showToast('5秒以上計測してから保存できます'); return; }
+    autoSave('ストップウォッチ', Math.floor(swElapsed / 1000));
+    showToast('記録を保存しました ✓');
+  }
+  function updateSWUI() {
+    let ms = swElapsed;
+    const h = Math.floor(ms / 3600000); ms %= 3600000;
+    const m = Math.floor(ms / 60000); ms %= 60000;
+    const s = Math.floor(ms / 1000); ms %= 1000;
+    const cs = Math.floor(ms / 10);
+    const main = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    document.getElementById('sw-display').childNodes[0].nodeValue = main;
+    document.getElementById('sw-cs').textContent = '.' + pad(cs);
+  }
+  function renderLaps() {
+    const el = document.getElementById('lap-list');
+    if (swLaps.length === 0) {
+      el.innerHTML = '<div class="no-laps">▶ を押してスタート<br>フラグボタンでラップを記録</div>';
+      return;
+    }
+    const minLap = Math.min(...swLaps.map(l => l.lap));
+    const maxLap = Math.max(...swLaps.map(l => l.lap));
+    el.innerHTML = [...swLaps].reverse().map((l, ri) => {
+      const idx = swLaps.length - ri;
+      let cls = swLaps.length > 1 ? (l.lap === minLap ? 'best' : l.lap === maxLap ? 'worst' : '') : '';
+      return `<div class="lap-item ${cls}">
+        <span class="lap-num">Lap ${idx}</span>
+        <span class="lap-time">${fmtMs(l.lap)}</span>
+        <span class="lap-total">${fmtMs(l.total)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ---- CHAT & ROOM (Firebase) ----
+  function sendChatMessage() {
+    const nameInput = document.getElementById('chat-name');
+    const textInput = document.getElementById('chat-text');
+    const name = nameInput.value.trim() || '名無し';
+    const text = textInput.value.trim();
+    if (!text) return;
+
+    chatRef.push({
+      type: 'chat',
+      clientId: myClientId,
+      name: name,
+      text: text,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    textInput.value = '';
+  }
+
+  // タイムラインの監視（最新50件）
+  chatRef.limitToLast(50).on('value', (snapshot) => {
+    const msgsContainer = document.getElementById('chat-messages');
+    msgsContainer.innerHTML = '';
+    const data = snapshot.val();
+    if (!data) return;
+
+    const sortedMsgs = Object.keys(data).map(key => data[key]);
+    sortedMsgs.forEach(msg => {
+      const msgRow = document.createElement('div');
+      
+      // メッセージの種類（システム通知か通常のチャットか）を判別
+      if (msg.type === 'system') {
+        msgRow.className = 'chat-msg-row system';
+      } else {
+        const isMe = msg.clientId === myClientId;
+        msgRow.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+      }
+
+      const userLabel = document.createElement('div');
+      userLabel.className = 'chat-user';
+      userLabel.textContent = msg.name;
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.textContent = msg.text;
+
+      msgRow.appendChild(userLabel);
+      msgRow.appendChild(bubble);
+      msgsContainer.appendChild(msgRow);
+    });
+    scrollChatToBottom();
+  });
+
+  function scrollChatToBottom() {
+    const msgsContainer = document.getElementById('chat-messages');
+    msgsContainer.scrollTop = msgsContainer.scrollHeight;
+  }
+
+  // ---- RECORDS ----
+  function autoSave(type, secs) {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ja-JP');
+    const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    
+    records.unshift({
+      id: Date.now(), type, secs, date: dateStr, time: timeStr
+    });
+    localStorage.setItem('study_records_v3', JSON.stringify(records));
+    
+    // 💡【ポイント】確実に動いている chat_messages フォルダへ「システム通知」として全員へ配信！
+    const name = document.getElementById('chat-name').value.trim() || '名無し';
+    chatRef.push({
+      type: 'system',
+      name: 'SYSTEM',
+      text: `🔥 ${name}さんが ${type}で [ ${fmtSec(secs)} ] の勉強を記録しました！`,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    if (activeTab === 'records') renderRecords();
+  }
+
+  function deleteRecord(id) {
+    records = records.filter(r => r.id !== id);
+    localStorage.setItem('study_records_v3', JSON.stringify(records));
+    renderRecords();
+  }
+
+  function renderRecords() {
+    const today = new Date().toLocaleDateString('ja-JP');
+    const todayRecs = records.filter(r => r.date === today);
+    const todaySecs = todayRecs.reduce((a, r) => a + r.secs, 0);
+    document.getElementById('stat-today').textContent = `${Math.floor(todaySecs/3600)}h ${Math.floor((todaySecs%3600)/60)}m`;
+    document.getElementById('stat-sessions').textContent = todayRecs.length;
+    document.getElementById('stat-streak').textContent = calcStreak() + '日';
+
+    const list = document.getElementById('rec-list');
+    if (records.length === 0) {
+      list.innerHTML = `<div class="empty-rec">まだ記録がありません</div>`;
+      return;
+    }
+    list.innerHTML = records.map(r => `
+      <div class="rec-card">
+        <div>
+          <div class="rec-type">${r.type}</div>
+          <div class="rec-meta">${r.date} ${r.time}</div>
+        </div>
+        <div class="rec-actions">
+          <div class="rec-dur">${fmtSec(r.secs)}</div>
+          <button class="del-btn" onclick="deleteRecord(${r.id})" title="削除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  function calcStreak() {
+    if (records.length === 0) return 0;
+    const dates = [...new Set(records.map(r => r.date))];
+    let streak = 0, d = new Date();
+    for (let i = 0; i < 365; i++) {
+      if (dates.includes(d.toLocaleDateString('ja-JP'))) streak++;
+      else if (i > 0) break;
+      d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  }
+
+  // ---- Utilities ----
+  function fmtSec(s) {
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+  }
+  function fmtMs(ms) {
+    const m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000), cs = Math.floor((ms%1000)/10);
+    return `${pad(m)}:${pad(s)}.${pad(cs)}`;
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ---- Init ----
+  updateTimerUI();
+  renderRecords();
+</script>
+</body>
+</html>
