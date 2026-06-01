@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>学習タイマー</title>
+  <title>学習タイマー ＆ リアルタイムチャット</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -308,6 +308,102 @@
       line-height: 1.8;
     }
 
+    /* === CHAT PANEL === */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      height: 350px;
+      overflow: hidden;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-msg-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+    }
+    .chat-msg-row.me {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+    .chat-msg-row.other {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+    .chat-user {
+      font-size: 10px;
+      color: var(--text3);
+      margin-bottom: 2px;
+      padding: 0 4px;
+    }
+    .chat-bubble {
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    .chat-msg-row.me .chat-bubble {
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg-row.other .chat-bubble {
+      background: var(--bg3);
+      color: var(--text1);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .chat-input-area {
+      display: flex;
+      padding: 8px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      gap: 6px;
+    }
+    .chat-name-input {
+      width: 70px;
+      padding: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text1);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    .chat-text-input {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text1);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .chat-send-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chat-send-btn:hover { background: var(--accent2); }
+
     /* === RECORDS === */
     .stats-grid {
       display: grid;
@@ -482,7 +578,6 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-    /* number input arrows hide */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
@@ -495,7 +590,6 @@
     <h1>Study Timer</h1>
   </div>
 
-  <!-- Tabs -->
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('timer')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
@@ -505,13 +599,16 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>
       ストップウォッチ
     </button>
+    <button class="tab" onclick="switchTab('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      チャット
+    </button>
     <button class="tab" onclick="switchTab('records')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>
       記録
     </button>
   </div>
 
-  <!-- ===== TIMER PANEL ===== -->
   <div id="panel-timer" class="panel active">
     <div class="preset-row">
       <button class="preset-btn sel" onclick="setPreset(this,5)">5分</button>
@@ -573,7 +670,6 @@
     </div>
   </div>
 
-  <!-- ===== STOPWATCH PANEL ===== -->
   <div id="panel-stopwatch" class="panel">
     <div class="sw-clock-wrap">
       <div class="sw-main" id="sw-display">00:00<span class="sw-cs" id="sw-cs">.00</span></div>
@@ -613,7 +709,17 @@
     </div>
   </div>
 
-  <!-- ===== RECORDS PANEL ===== -->
+  <div id="panel-chat" class="panel">
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-name-input" id="chat-name" placeholder="名前" value="名無し">
+        <input type="text" class="chat-text-input" id="chat-text" placeholder="メッセージを入力...">
+        <button class="chat-send-btn" onclick="sendChatMessage()">送信</button>
+      </div>
+    </div>
+  </div>
+
   <div id="panel-records" class="panel">
     <div class="stats-grid">
       <div class="stat-card">
@@ -647,7 +753,6 @@
 
 </div>
 
-<!-- Alarm overlay -->
 <div class="alarm-overlay" id="alarm-overlay">
   <div class="alarm-box">
     <div class="alarm-icon">
@@ -661,7 +766,39 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <script>
+  // ---- Firebaseの設定 ----
+  const firebaseConfig = {
+    databaseURL: "https://study-timer-2350b-default-rtdb.firebaseio.com/"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+  const chatRef = database.ref('chat_messages');
+
+  // ---- クライアントの固有IDを生成（チャットの左右判定用） ----
+  let myClientId = localStorage.getItem('chat_client_id');
+  if (!myClientId) {
+    myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chat_client_id', myClientId);
+  }
+
+  // 名前の記憶
+  const savedName = localStorage.getItem('chat_user_name');
+  if (savedName) document.getElementById('chat-name').value = savedName;
+
+  document.getElementById('chat-name').addEventListener('input', (e) => {
+    localStorage.setItem('chat_user_name', e.target.value);
+  });
+
+  // Enterキーで送信
+  document.getElementById('chat-text').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendChatMessage();
+  });
+
+
   // ---- State ----
   let activeTab = 'timer';
   let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null, timerTag = '数学';
@@ -669,16 +806,18 @@
   let records = JSON.parse(localStorage.getItem('study_records_v2') || '[]');
   let currentFilter = 'all';
 
-  const CIRCUM = 2 * Math.PI * 96; // ~603
+  const CIRCUM = 2 * Math.PI * 96;
 
   // ---- Tabs ----
   function switchTab(name) {
-    ['timer','stopwatch','records'].forEach((n,i) => {
+    ['timer','stopwatch','chat','records'].forEach((n,i) => {
       document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
-      document.getElementById('panel-'+n).classList.toggle('active', n === name);
+      const el = document.getElementById('panel-'+n);
+      if(el) el.classList.toggle('active', n === name);
     });
     activeTab = name;
     if (name === 'records') renderRecords();
+    if (name === 'chat') scrollChatToBottom();
   }
 
   // ---- Tag ----
@@ -734,6 +873,7 @@
     document.getElementById('t-status').textContent = '一時停止';
   }
 
+  // （中略）既存タイマー機能を維持
   function resetTimer() {
     pauseTimer();
     syncTimer();
@@ -859,6 +999,64 @@
       </div>`;
     }).join('');
   }
+
+  // ---- CHAT FUNCTIONS (Firebase) ----
+  function sendChatMessage() {
+    const nameInput = document.getElementById('chat-name');
+    const textInput = document.getElementById('chat-text');
+    const name = nameInput.value.trim() || '名無し';
+    const text = textInput.value.trim();
+
+    if (!text) return;
+
+    // Firebaseにメッセージをプッシュ送信
+    chatRef.push({
+      clientId: myClientId,
+      name: name,
+      text: text,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    textInput.value = '';
+  }
+
+  // Firebaseからメッセージをリアルタイム受信
+  chatRef.limitToLast(50).on('value', (snapshot) => {
+    const msgsContainer = document.getElementById('chat-messages');
+    msgsContainer.innerHTML = '';
+    
+    const data = snapshot.val();
+    if (!data) return;
+
+    // オブジェクトを配列に変換して並び替え
+    const sortedMsgs = Object.keys(data).map(key => data[key]);
+
+    sortedMsgs.forEach(msg => {
+      const isMe = msg.clientId === myClientId;
+      const msgRow = document.createElement('div');
+      msgRow.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+
+      const userLabel = document.createElement('div');
+      userLabel.className = 'chat-user';
+      userLabel.textContent = msg.name;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.textContent = msg.text;
+
+      msgRow.appendChild(userLabel);
+      msgRow.appendChild(bubble);
+      msgsContainer.appendChild(msgRow);
+    });
+
+    scrollChatToBottom();
+  });
+
+  function scrollChatToBottom() {
+    const msgsContainer = document.getElementById('chat-messages');
+    msgsContainer.scrollTop = msgsContainer.scrollHeight;
+  }
+
 
   // ---- RECORDS ----
   function autoSave(type, secs, tag) {
