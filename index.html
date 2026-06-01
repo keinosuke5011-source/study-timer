@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>シンプル学習タイマー ＆ ルーム</title>
+  <title>リアルタイム学習ルーム（ランキング＆チャット）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -22,7 +22,9 @@
       --accent2: #0f8a62;
       --warn: #e05a30;
       --warn2: #b03e1e;
-      --system-msg: #3a86ff;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 18px;
@@ -256,7 +258,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
-      max-height: 200px;
+      max-height: 160px;
       overflow-y: auto;
       margin-bottom: 1rem;
     }
@@ -284,14 +286,14 @@
       line-height: 1.8;
     }
 
-    /* === CHAT & ROOM PANEL === */
+    /* === CHAT PANEL === */
     .chat-container {
       display: flex;
       flex-direction: column;
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      height: 400px;
+      height: 380px;
       overflow: hidden;
     }
     .chat-messages {
@@ -300,7 +302,7 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .chat-msg-row {
       display: flex;
@@ -315,25 +317,6 @@
       align-self: flex-start;
       align-items: flex-start;
     }
-    
-    /* システム通知（勉強記録用バブル） */
-    .chat-msg-row.system {
-      max-width: 100%;
-      width: 100%;
-      align-self: center;
-      align-items: center;
-    }
-    .chat-msg-row.system .chat-bubble {
-      background: rgba(58, 134, 255, 0.1);
-      color: #90b4ff;
-      border: 1px solid rgba(58, 134, 255, 0.2);
-      font-size: 12px;
-      border-radius: 20px;
-      padding: 6px 16px;
-      text-align: center;
-    }
-    .chat-msg-row.system .chat-user { display: none; }
-
     .chat-user {
       font-size: 10px;
       color: var(--text3);
@@ -399,7 +382,7 @@
     }
     .chat-send-btn:hover { background: var(--accent2); }
 
-    /* === RECORDS === */
+    /* === RECORDS & RANKING === */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -415,7 +398,7 @@
     }
     .stat-val {
       font-family: 'DM Mono', monospace;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 400;
       color: var(--text1);
       line-height: 1;
@@ -427,9 +410,59 @@
       letter-spacing: 0.5px;
     }
     .rec-header {
-      margin-bottom: 0.75rem;
+      margin: 1.25rem 0 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .rec-header h3 { font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+    .rec-header h3 { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+    
+    /* ランキング表示用 */
+    .rank-list {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .rank-row {
+      display: flex;
+      align-items: center;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-num {
+      width: 28px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text3);
+    }
+    /* メダルカラー */
+    .rank-row.rank-1 .rank-num { color: var(--gold); font-size: 16px; }
+    .rank-row.rank-2 .rank-num { color: var(--silver); font-size: 15px; }
+    .rank-row.rank-3 .rank-num { color: var(--bronze); font-size: 14px; }
+    
+    .rank-name {
+      flex: 1;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rank-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .rank-row.is-me {
+      background: rgba(29,190,138,0.06);
+      border-left: 3px solid var(--accent);
+      padding-left: 13px;
+    }
+
+    /* 自分の記録カード */
     .rec-list { display: flex; flex-direction: column; gap: 6px; }
     .rec-card {
       background: var(--bg2);
@@ -459,10 +492,9 @@
     .del-btn svg { width: 15px; height: 15px; }
     .empty-rec {
       text-align: center;
-      padding: 3rem 1rem;
+      padding: 2rem 1rem;
       color: var(--text3);
-      font-size: 13px;
-      line-height: 2;
+      font-size: 12px;
     }
 
     /* Toast */
@@ -539,7 +571,7 @@
 <div class="app">
 
   <div class="app-header">
-    <h1>Study Room</h1>
+    <h1>Study Timer</h1>
   </div>
 
   <div class="tab-bar">
@@ -553,7 +585,7 @@
     </button>
     <button class="tab" onclick="switchTab('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      ルーム
+      チャット
     </button>
     <button class="tab" onclick="switchTab('records')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>
@@ -671,9 +703,15 @@
     </div>
 
     <div class="rec-header">
-      <h3>学習記録</h3>
+      <h3>今日の全ユーザー順位 🏆</h3>
+    </div>
+    <div class="rank-list" id="rank-list">
+      <div class="empty-rec">データを読み込み中...</div>
     </div>
 
+    <div class="rec-header">
+      <h3>自分の個人記録</h3>
+    </div>
     <div class="rec-list" id="rec-list"></div>
   </div>
 
@@ -696,17 +734,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <script>
-  // ---- Firebase設定（シンガポールサーバー） ----
+  // ---- Firebase設定（すでに100%動いているchat_messagesのフォルダのみに絞ります） ----
   const firebaseConfig = {
     databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app"
   };
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
-  
-  // 確実に動いているフォルダ「chat_messages」のみを利用します
   const chatRef = database.ref('chat_messages');
 
-  // クライアントID
+  // クライアントID（端末識別用）
   let myClientId = localStorage.getItem('chat_client_id');
   if (!myClientId) {
     myClientId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -714,10 +750,11 @@
   }
 
   // 名前の記憶
-  const savedName = localStorage.getItem('chat_user_name');
-  if (savedName) document.getElementById('chat-name').value = savedName;
+  const savedName = localStorage.getItem('chat_user_name') || '名無し';
+  document.getElementById('chat-name').value = savedName;
   document.getElementById('chat-name').addEventListener('input', (e) => {
     localStorage.setItem('chat_user_name', e.target.value);
+    sendSyncSignal(); // 名前を変えたらランキングも更新
   });
 
   // Enter送信
@@ -902,7 +939,7 @@
     }).join('');
   }
 
-  // ---- CHAT & ROOM (Firebase) ----
+  // ---- CHAT (Firebase) ----
   function sendChatMessage() {
     const nameInput = document.getElementById('chat-name');
     const textInput = document.getElementById('chat-text');
@@ -911,7 +948,7 @@
     if (!text) return;
 
     chatRef.push({
-      type: 'chat',
+      dataType: 'message',
       clientId: myClientId,
       name: name,
       text: text,
@@ -920,37 +957,91 @@
     textInput.value = '';
   }
 
-  // タイムラインの監視（最新50件）
-  chatRef.limitToLast(50).on('value', (snapshot) => {
+  // ランキング用データ同期用の信号
+  function sendSyncSignal() {
+    const today = new Date().toLocaleDateString('ja-JP');
+    const todaySecs = records.filter(r => r.date === today).reduce((a, r) => a + r.secs, 0);
+    const name = document.getElementById('chat-name').value.trim() || '名無し';
+
+    chatRef.push({
+      dataType: 'sync_rank',
+      date: today,
+      clientId: myClientId,
+      name: name,
+      totalSecs: todaySecs,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+  }
+
+  // Firebaseデータをリアルタイム一括監視して「メッセージ」と「ランキング」に振り分ける
+  chatRef.limitToLast(150).on('value', (snapshot) => {
     const msgsContainer = document.getElementById('chat-messages');
+    const rankListEl = document.getElementById('rank-list');
+    
     msgsContainer.innerHTML = '';
     const data = snapshot.val();
-    if (!data) return;
+    if (!data) {
+      rankListEl.innerHTML = `<div class="empty-rec">今日の参加者はまだいません</div>`;
+      return;
+    }
 
-    const sortedMsgs = Object.keys(data).map(key => data[key]);
-    sortedMsgs.forEach(msg => {
-      const msgRow = document.createElement('div');
-      
-      // メッセージの種類（システム通知か通常のチャットか）を判別
-      if (msg.type === 'system') {
-        msgRow.className = 'chat-msg-row system';
-      } else {
-        const isMe = msg.clientId === myClientId;
+    const todayStr = new Date().toLocaleDateString('ja-JP');
+    const rankMap = {}; // 各ユーザーの最新時間を記憶するマップ
+
+    const keys = Object.keys(data);
+    keys.forEach(key => {
+      const item = data[key];
+
+      // 1. 通常チャットの処理
+      if (!item.dataType || item.dataType === 'message') {
+        const isMe = item.clientId === myClientId;
+        const msgRow = document.createElement('div');
         msgRow.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+        const userLabel = document.createElement('div');
+        userLabel.className = 'chat-user';
+        userLabel.textContent = item.name;
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = item.text;
+
+        msgRow.appendChild(userLabel);
+        msgRow.appendChild(bubble);
+        msgsContainer.appendChild(msgRow);
       }
 
-      const userLabel = document.createElement('div');
-      userLabel.className = 'chat-user';
-      userLabel.textContent = msg.name;
-      
-      const bubble = document.createElement('div');
-      bubble.className = 'chat-bubble';
-      bubble.textContent = msg.text;
-
-      msgRow.appendChild(userLabel);
-      msgRow.appendChild(bubble);
-      msgsContainer.appendChild(msgRow);
+      // 2. ランキング用データの集計処理（今日の日付のデータのみ）
+      if (item.dataType === 'sync_rank' && item.date === todayStr) {
+        rankMap[item.clientId] = {
+          name: item.name,
+          totalSecs: item.totalSecs
+        };
+      }
     });
+
+    // ランキングを配列にして秒数の多い順にソート
+    const rankingArray = Object.keys(rankMap).map(cid => ({
+      id: cid,
+      name: rankMap[cid].name,
+      totalSecs: rankMap[cid].totalSecs
+    })).filter(u => u.totalSecs > 0)
+       .sort((a, b) => b.totalSecs - a.totalSecs);
+
+    // ランキングボードへの描画
+    if (rankingArray.length === 0) {
+      rankListEl.innerHTML = `<div class="empty-rec">今日の参加者はまだいません</div>`;
+    } else {
+      rankListEl.innerHTML = rankingArray.map((user, idx) => {
+        const isMe = user.id === myClientId;
+        return `
+          <div class="rank-row rank-${idx+1} ${isMe ? 'is-me' : ''}">
+            <div class="rank-num">${idx+1}</div>
+            <div class="rank-name">${user.name} ${isMe ? '(あなた)' : ''}</div>
+            <div class="rank-time">${fmtSec(user.totalSecs)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
     scrollChatToBottom();
   });
 
@@ -962,22 +1053,15 @@
   // ---- RECORDS ----
   function autoSave(type, secs) {
     const now = new Date();
-    const dateStr = now.toLocaleDateString('ja-JP');
-    const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-    
     records.unshift({
-      id: Date.now(), type, secs, date: dateStr, time: timeStr
+      id: Date.now(), type, secs,
+      date: now.toLocaleDateString('ja-JP'),
+      time: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
     });
     localStorage.setItem('study_records_v3', JSON.stringify(records));
     
-    // 💡【ポイント】確実に動いている chat_messages フォルダへ「システム通知」として全員へ配信！
-    const name = document.getElementById('chat-name').value.trim() || '名無し';
-    chatRef.push({
-      type: 'system',
-      name: 'SYSTEM',
-      text: `🔥 ${name}さんが ${type}で [ ${fmtSec(secs)} ] の勉強を記録しました！`,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
+    // 時間を保存したらすぐにFirebaseへ同期信号を送る
+    sendSyncSignal();
 
     if (activeTab === 'records') renderRecords();
   }
@@ -985,6 +1069,9 @@
   function deleteRecord(id) {
     records = records.filter(r => r.id !== id);
     localStorage.setItem('study_records_v3', JSON.stringify(records));
+    
+    // 消去したあともランキングを即時再計算して同期
+    sendSyncSignal();
     renderRecords();
   }
 
@@ -1047,6 +1134,9 @@
   // ---- Init ----
   updateTimerUI();
   renderRecords();
+  
+  // 最初開いた瞬間に、今日すでに勉強した時間があればランキングに即反映する
+  setTimeout(sendSyncSignal, 1000);
 </script>
 </body>
 </html>
