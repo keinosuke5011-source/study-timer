@@ -173,7 +173,7 @@
     .rec-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 11px 14px; display: flex; justify-content: space-between; margin-bottom: 6px; }
     .del-btn { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px; }
 
-    /* === SETTINGS (NEW) === */
+    /* === SETTINGS === */
     .settings-group { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
     .settings-title { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
     .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; font-size: 13px; color: var(--text2); }
@@ -373,7 +373,7 @@
     playNotificationSound(true); // 試し鳴らし
   }
 
-  // ---- 音を鳴らす（AudioContext：外部ファイル不要で安全） ----
+  // ---- 音を鳴らす（ブラウザ内蔵音源） ----
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   let audioCtx;
 
@@ -391,8 +391,8 @@
     
     if (sndType === 'chime' || sndType === 'none') {
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // ラの音
-      osc.frequency.exponentialRampToValueAtTime(1108.73, audioCtx.currentTime + 0.1); // ド#
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1108.73, audioCtx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
       osc.start();
@@ -408,7 +408,7 @@
     }
   }
 
-  // ---- スマホ/ブラウザへのプッシュ通知 ----
+  // ---- スマホ/ブラウザへのプッシュ通知設定 ----
   function updateNotifyBtnUI() {
     const btn = document.getElementById('notify-btn');
     if (!("Notification" in window)) {
@@ -452,7 +452,7 @@
   document.getElementById('chat-name').addEventListener('input', e => localStorage.setItem('chat_user_name', e.target.value));
   document.getElementById('chat-text').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
 
-  // 起動時の過去データ処理用（ロード時に通知が大量に鳴らないようにする）
+  // 初回ロードで通知の暴発を防ぐ
   let isInitialLoad = true;
   setTimeout(() => { isInitialLoad = false; }, 2000); 
   let latestMsgId = null;
@@ -471,7 +471,7 @@
 
     Object.keys(data).forEach(key => {
       const item = data[key];
-      lastMsg = item; // 最後のメッセージを記録
+      lastMsg = item;
 
       if (!item.dataType || item.dataType === 'message') {
         const isMe = item.clientId === myClientId;
@@ -485,17 +485,16 @@
       }
     });
 
-    // ▼▼▼ 新着メッセージの通知判定 ▼▼▼
+    // 新着チャットの受信時に通知を発生させる
     if (!isInitialLoad && lastMsg && lastMsg.timestamp !== latestMsgId) {
-      if (lastMsg.clientId !== myClientId && lastMsg.dataType === 'message') {
-        // 自分以外からのチャットなら音を鳴らして通知！
+      if (lastMsg.clientId !== myClientId && (!lastMsg.dataType || lastMsg.dataType === 'message')) {
         playNotificationSound();
         triggerPushNotification(`${lastMsg.name}さんから`, lastMsg.text);
       }
       latestMsgId = lastMsg.timestamp;
     }
 
-    // ランキング描画
+    // ランキングの描画
     const rankArr = Object.keys(rankMap).map(id => ({ id, ...rankMap[id] })).filter(u => u.totalSecs > 0).sort((a, b) => b.totalSecs - a.totalSecs);
     if (rankArr.length === 0) rankListEl.innerHTML = `<div style="padding:1rem;text-align:center;color:var(--text3);font-size:12px;">参加者なし</div>`;
     else rankListEl.innerHTML = rankArr.map((u, i) => `<div class="rank-row rank-${i+1} ${u.id===myClientId?'is-me':''}"><div class="rank-num">${i+1}</div><div class="rank-name">${u.name}</div><div class="rank-time">${fmtSec(u.totalSecs)}</div></div>`).join('');
@@ -516,7 +515,7 @@
     chatRef.push({ dataType: 'sync_rank', date: today, clientId: myClientId, name: document.getElementById('chat-name').value || '名無し', totalSecs: todaySecs, timestamp: firebase.database.ServerValue.TIMESTAMP });
   }
 
-  // ---- 共通機能（タイマー等） ----
+  // ---- 共通タイマー機能 ----
   let activeTab = 'timer', records = JSON.parse(localStorage.getItem('study_records_v3') || '[]');
   let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
   let swElapsed = 0, swRunning = false, swInterval = null, swLaps = [], swLastLap = 0;
