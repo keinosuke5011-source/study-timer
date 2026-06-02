@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>リアルタイム学習ルーム（バックグラウンド通知対応）</title>
+  <title>リアルタイム学習ルーム（プレイリスト版）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -82,6 +82,25 @@
     .ctrl-btn.primary.running { background: var(--warn); border-color: var(--warn); }
     .ctrl-btn.save-btn { border-color: rgba(29,190,138,0.3); color: var(--accent); font-size: 12px; width: auto; border-radius: 24px; padding: 0 18px; gap: 6px; }
 
+    /* === YOUTUBE MUSIC PLAYER === */
+    .yt-container { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1.5rem; }
+    .yt-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+    .yt-search-box { display: flex; gap: 6px; margin-bottom: 0.75rem; }
+    .yt-input { flex: 1; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text1); font-size: 12px; outline: none; }
+    .yt-btn { background: var(--bg3); border: 1px solid var(--border2); color: var(--text1); padding: 0 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: 0.2s; }
+    .yt-btn:hover { border-color: var(--accent); color: var(--accent); }
+    
+    .yt-video-wrapper { position: relative; width: 100%; padding-top: 56.25%; border-radius: var(--radius-sm); overflow: hidden; background: #000; display: none; margin-bottom: 0.75rem; }
+    .yt-video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    
+    .yt-results, .yt-playlist { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; }
+    .yt-list-title { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin: 0.5rem 0 0.25rem; }
+    .yt-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--bg3); border-radius: var(--radius-sm); font-size: 11px; gap: 8px; }
+    .yt-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .yt-item-name:hover { color: var(--accent); }
+    .yt-add-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 14px; padding: 0 4px; }
+    .yt-del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 11px; padding: 0 4px; }
+
     /* === STOPWATCH === */
     .sw-clock-wrap { text-align: center; padding: 2rem 0 1.5rem; }
     .sw-main { font-family: 'DM Mono', monospace; font-size: 64px; font-weight: 300; letter-spacing: -2px; line-height: 1; }
@@ -151,7 +170,7 @@
     <button class="tab" onclick="switchTab('stopwatch')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5v-2M10 3h4M16 6l1.5-1.5"/></svg>計測</button>
     <button class="tab" onclick="switchTab('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>ルーム</button>
     <button class="tab" onclick="switchTab('records')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>記録</button>
-    <button class="tab" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定</button>
+    <button class="tab" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 2 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定</button>
   </div>
 
   <div id="panel-timer" class="panel active">
@@ -175,6 +194,28 @@
       <button class="ctrl-btn" onclick="resetTimer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="ctrl-btn primary" id="t-playbtn" onclick="toggleTimer()"><svg id="t-playicon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
       <button class="ctrl-btn save-btn" onclick="saveTimerRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存</button>
+    </div>
+
+    <div class="yt-container">
+      <div class="yt-title">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="color:#ff0000;"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93 .502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        ミュージックプレイヤー
+      </div>
+      
+      <div class="yt-video-wrapper" id="yt-wrapper">
+        <div id="yt-player"></div>
+      </div>
+
+      <div class="yt-search-box">
+        <input type="text" class="yt-input" id="yt-query" placeholder="曲名やアーティスト名で検索...">
+        <button class="yt-btn" onclick="searchYouTube()">検索</button>
+      </div>
+
+      <div class="yt-list-title" id="title-results" style="display:none;">検索結果</div>
+      <div class="yt-results" id="yt-results"></div>
+
+      <div class="yt-list-title">マイプレイリスト</div>
+      <div class="yt-playlist" id="yt-playlist"></div>
     </div>
   </div>
 
@@ -233,6 +274,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
 <script>
+  // ========================================================
+  // 【重要】ここにあなたの取得したAPIキーを貼り付けてください！
+  // ========================================================
+  const YOUTUBE_API_KEY = "AIzaSyCUgdRQs7PEmNvfbtP0dZLLl_ggMZIGJ1Q";
+
   // ---- 設定（テーマと音）の管理 ----
   const themeColors = {
     default: { bg: '#0d0d0f', bg2: '#16161a', bg3: '#1e1e24', border: 'rgba(255,255,255,0.08)', text1: '#f0f0f2', text2: '#9898a8', text3: '#5a5a6a' },
@@ -248,6 +294,7 @@
     document.getElementById('sound-select').value = savedSound;
     changeTheme();
     updateNotifyBtnUI();
+    renderPlaylist(); // プレイリスト初期表示
   }
 
   function changeTheme() {
@@ -389,6 +436,110 @@
     chatRef.push({ dataType: 'sync_rank', date: today, clientId: myClientId, name: document.getElementById('chat-name').value || '名無し', totalSecs: todaySecs, timestamp: firebase.database.ServerValue.TIMESTAMP });
   }
 
+  // ---- YouTube プレイヤー＆検索・プレイリスト制御 ----
+  let ytPlayer = null;
+  let playlist = JSON.parse(localStorage.getItem('study_playlist') || '[{"id":"jfKfPfyJRdk","title":"定番 Lofi BGM (Default)"}]');
+  
+  // YouTube Iframe APIの読み込み
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  // 1. YouTube検索APIを叩く関数
+  async function searchYouTube() {
+    const query = document.getElementById('yt-query').value.trim();
+    if (!query) return showToast('検索ワードを入力してください');
+    if (YOUTUBE_API_KEY === "ここにAPIキーを入れる") return alert("プログラムの最初のほうにある『YOUTUBE_API_KEY』に取得したキーを貼り付けてください！");
+
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=4&key=${YOUTUBE_API_KEY}`;
+    
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const resultsEl = document.getElementById('yt-results');
+      document.getElementById('title-results').style.display = 'block';
+      resultsEl.innerHTML = '';
+
+      if (!data.items || data.items.length === 0) {
+        resultsEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;">見つかりませんでした</div>';
+        return;
+      }
+
+      data.items.forEach(item => {
+        const videoId = item.id.videoId;
+        const title = item.snippet.title;
+        const div = document.createElement('div');
+        div.className = 'yt-item';
+        div.innerHTML = `
+          <span class="yt-item-name" onclick="playMusic('${videoId}')">▶ ${title}</span>
+          <button class="yt-add-btn" onclick="addToPlaylist('${videoId}', '${title.replace(/'/g, "\\'")}')">＋</button>
+        `;
+        resultsEl.appendChild(div);
+      });
+    } catch (err) {
+      console.error(err);
+      showToast('検索に失敗しました。APIキーを確認してください。');
+    }
+  }
+
+  // 2. プレイリストに追加
+  function addToPlaylist(id, title) {
+    if (playlist.some(item => item.id === id)) return showToast('既にリストにあります');
+    playlist.push({ id, title });
+    localStorage.setItem('study_playlist', JSON.stringify(playlist));
+    renderPlaylist();
+    showToast('プレイリストに追加しました！');
+  }
+
+  // 3. プレイリストから削除
+  function removeFromPlaylist(id) {
+    playlist = playlist.filter(item => item.id !== id);
+    localStorage.setItem('study_playlist', JSON.stringify(playlist));
+    renderPlaylist();
+    showToast('削除しました');
+  }
+
+  // 4. プレイリストの描画
+  function renderPlaylist() {
+    const listEl = document.getElementById('yt-playlist');
+    if (playlist.length === 0) {
+      listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:0.5rem;">リストは空っぽです</div>';
+      return;
+    }
+    listEl.innerHTML = playlist.map(item => `
+      <div class="yt-item">
+        <span class="yt-item-name" onclick="playMusic('${item.id}')">🎵 ${item.title}</span>
+        <button class="yt-del-btn" onclick="removeFromPlaylist('${item.id}')">🗑️</button>
+      </div>
+    `).join('');
+  }
+
+  // 5. 音楽を再生する（曲名タップで発動）
+  function playMusic(videoId) {
+    document.getElementById('yt-wrapper').style.display = 'block'; // プレイヤーを出す
+
+    if (ytPlayer) {
+      ytPlayer.loadVideoById(videoId);
+      showToast('曲を再生します');
+    } else {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: { 'playsinline': 1, 'rel': 0, 'autoplay': 1 },
+        events: {
+          'onReady': (event) => { 
+            event.target.playVideo(); 
+            showToast('曲を再生します');
+          }
+        }
+      });
+    }
+  }
+
   // ---- 共通タイマー機能 ----
   let activeTab = 'timer', records = JSON.parse(localStorage.getItem('study_records_v3') || '[]');
   let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
@@ -442,28 +593,14 @@
   updateTimerUI();
   setTimeout(sendSyncSignal, 1000);
 
-  // ========================================================
-  // サービスワーカーの登録と鍵（VAPIDキー）の設定
-  // ========================================================
+  // サービスワーカー登録等
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./firebase-messaging-sw.js')
     .then((registration) => {
-      console.log('サービスワーカーの登録に成功しました！');
       const messaging = firebase.messaging();
-      
       messaging.getToken({ 
         vapidKey: 'BMpm4PTpHTOHE8TkPcPOgXjP1posaudzSpVEMczaHOSNasUm5Hlt1ux4q6qvRUPXgcqkwkrc9EjOjI7FCrkjV54' 
-      }).then((currentToken) => {
-        if (currentToken) {
-          console.log('通知用のトークンを取得しました:', currentToken);
-        } else {
-          console.log('トークンが取得できませんでした。通知の許可が必要です。');
-        }
-      }).catch((err) => {
-        console.log('トークンの取得中にエラーが発生しました:', err);
       });
-    }).catch((err) => {
-      console.log('サービスワーカーの登録に失敗しました:', err);
     });
   }
 </script>
