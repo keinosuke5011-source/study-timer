@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Study Timer - 育成＆集中ルーム</title>
+  <title>Study Room - YouTube & Ranking</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,33 +11,56 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* 10色のテーマ定義 */
+    body.theme-dark { --bg: #0d0d0f; --bg2: #16161a; --bg3: #1e1e24; --accent: #1dbe8a; }
+    body.theme-midnight { --bg: #0b0f19; --bg2: #111827; --bg3: #1f2937; --accent: #3b82f6; }
+    body.theme-sakura { --bg: #1f1215; --bg2: #2d1a1e; --bg3: #3d2429; --accent: #f472b6; }
+    body.theme-forest { --bg: #0f1411; --bg2: #16201a; --bg3: #223127; --accent: #10b981; }
+    body.theme-sunset { --bg: #17110e; --bg2: #241a14; --bg3: #34251d; --accent: #f97316; }
+    body.theme-purple { --bg: #120e17; --bg2: #1d1624; --bg3: #2a2034; --accent: #a855f7; }
+    body.theme-ocean { --bg: #0e161a; --bg2: #15232a; --bg3: #20333e; --accent: #06b6d4; }
+    body.theme-monochrome { --bg: #121212; --bg2: #1e1e1e; --bg3: #2c2c2c; --accent: #ffffff; }
+    body.theme-chocolate { --bg: #1a1412; --bg2: #261d1a; --bg3: #362925; --accent: #b45309; }
+    body.theme-cyber { --bg: #0b0b16; --bg2: #12122a; --bg3: #1c1c3f; --accent: #00ffff; }
+
     :root {
-      --bg: #0d0d0f; --bg2: #16161a; --bg3: #1e1e24;
       --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
       --text1: #f0f0f2; --text2: #9898a8; --text3: #5a5a6a;
-      --accent: #1dbe8a; --warn: #e05a30;
+      --warn: #e05a30; --purple: #a855f7;
       --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px;
     }
 
     body {
-      background: var(--bg); color: var(--text1); font-family: 'Sora', sans-serif;
-      min-height: 100vh; display: flex; justify-content: center;
-      padding: 1rem 1rem 4rem; transition: 0.3s;
+      color: var(--text1); font-family: 'Sora', sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 0 1rem 4rem; transition: background 0.3s, color 0.3s;
     }
 
-    .app { width: 100%; max-width: 480px; }
+    .app { width: 100%; max-width: 480px; margin-top: 1rem; }
     
+    /* お知らせヘッダー */
+    .news-banner {
+      width: 100%; max-width: 480px; background: rgba(168, 85, 247, 0.15); 
+      border: 1px solid rgba(168, 85, 247, 0.4); border-radius: var(--radius-md);
+      padding: 10px 14px; margin-top: 1rem; display: none; animation: slideDown 0.3s ease;
+    }
+    .news-banner-content { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.4; color: #e9d5ff; }
+    .news-badge { background: var(--purple); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     /* Tabs */
     .tab-bar { display: flex; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; gap: 4px; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .tab { flex: 1 1 14%; padding: 8px 0; background: transparent; border: none; border-radius: var(--radius-md); font-family: 'Sora', sans-serif; font-size: 10px; font-weight: 600; color: var(--text3); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .tab svg { width: 16px; height: 16px; }
     .tab.active { background: var(--bg3); color: var(--text1); border: 1px solid var(--border2); }
 
     .panel { display: none; animation: fadeIn 0.3s; }
     .panel.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* === TIMER === */
+    /* === TIMER & YOUTUBE === */
+    .yt-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+    .yt-input-row { display: flex; gap: 6px; margin-bottom: 1rem; }
+    
     .preset-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 1rem; }
     .preset-btn { padding: 5px 14px; background: transparent; border: 1px solid var(--border2); border-radius: 20px; color: var(--text2); font-size: 12px; cursor: pointer; }
     .preset-btn.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -45,12 +68,12 @@
     .custom-inputs { display: flex; justify-content: center; gap: 6px; margin-bottom: 1.5rem; }
     .custom-inputs input { width: 50px; padding: 6px; text-align: center; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text1); font-family: 'DM Mono', monospace; font-size: 16px; }
     
-    .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 1.5rem; }
+    .ring-wrap { position: relative; width: 200px; height: 200px; margin: 0 auto 1.5rem; }
     .ring-wrap svg { transform: rotate(-90deg); }
     .ring-bg { fill: none; stroke: var(--bg3); stroke-width: 8; }
     .ring-fill { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s; }
     .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .clock-big { font-family: 'DM Mono', monospace; font-size: 52px; font-weight: 300; letter-spacing: -2px; }
+    .clock-big { font-family: 'DM Mono', monospace; font-size: 46px; font-weight: 300; letter-spacing: -2px; }
     .clock-status { font-size: 10px; letter-spacing: 2px; color: var(--text3); }
     
     .ctrl-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1.5rem; }
@@ -59,63 +82,82 @@
     .ctrl-btn.primary.running { background: var(--warn); border-color: var(--warn); }
     .ctrl-btn.text-btn { width: auto; border-radius: 24px; padding: 0 16px; font-size: 12px; font-weight: 600; gap: 6px; height: 40px; }
 
-    /* === PET (育成機能) === */
-    .pet-container { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem 1rem; text-align: center; }
-    .pet-graphic { font-size: 80px; margin-bottom: 1rem; line-height: 1; animation: bounce 2s infinite; }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .pet-dead { filter: grayscale(100%); animation: none; opacity: 0.7; }
-    .pet-name { font-size: 20px; font-weight: 600; margin-bottom: 0.5rem; }
-    .pet-level { font-family: 'DM Mono'; color: var(--accent); font-size: 14px; margin-bottom: 1rem; }
-    
-    .exp-bar-wrap { background: var(--bg3); border-radius: 10px; height: 12px; width: 80%; margin: 0 auto 0.5rem; overflow: hidden; position: relative; }
-    .exp-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width 0.5s; }
-    .exp-text { font-size: 10px; color: var(--text3); margin-bottom: 1.5rem; }
-    
-    .pet-warning { color: var(--warn); font-size: 12px; font-weight: 600; background: rgba(224, 90, 48, 0.1); padding: 8px; border-radius: var(--radius-sm); margin-bottom: 1rem; }
+    /* === RANKING === */
+    .rank-list { display: flex; flex-direction: column; gap: 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+    .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg3); border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .rank-left { display: flex; align-items: center; gap: 10px; }
+    .rank-num { font-family: 'DM Mono'; font-weight: 600; width: 24px; color: var(--text3); text-align: center;}
+    .rank-item:nth-child(1) .rank-num { color: #facc15; font-size: 18px; }
+    .rank-item:nth-child(2) .rank-num { color: #cbd5e1; font-size: 16px; }
+    .rank-item:nth-child(3) .rank-num { color: #b45309; font-size: 14px; }
+    .rank-name { font-size: 14px; font-weight: 600; }
+    .rank-time { font-family: 'DM Mono'; color: var(--accent); font-size: 13px; }
 
     /* === CHAT === */
-    .chat-container { display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); height: 450px; overflow: hidden; }
+    .chat-container { display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); height: 420px; overflow: hidden; }
     .chat-messages { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
-    
-    /* アイコン横並び対応 */
     .chat-msg-row { display: flex; gap: 8px; max-width: 90%; align-items: flex-start; }
     .chat-msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
     .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .chat-content { display: flex; flex-direction: column; gap: 4px; }
     .chat-msg-row.me .chat-content { align-items: flex-end; }
-    
     .chat-user { font-size: 10px; color: var(--text3); }
     .chat-bubble { padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.5; word-break: break-all; }
     .chat-msg-row.me .chat-bubble { background: var(--accent); color: #fff; border-top-right-radius: 2px; }
     .chat-msg-row.other .chat-bubble { background: var(--bg3); color: var(--text1); border: 1px solid var(--border); border-top-left-radius: 2px; }
-    
     .chat-input-area { display: flex; padding: 8px; background: var(--bg); gap: 6px; }
     .chat-text-input { flex: 1; padding: 10px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text1); outline: none; }
 
-    /* === SETTINGS === */
+    /* === SETTINGS & MUSIC === */
     .settings-group { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
     .settings-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
     .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 13px; color: var(--text2); }
     .settings-input, .settings-select { padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border2); color: var(--text1); border-radius: var(--radius-sm); outline: none; }
     .btn-action { background: var(--accent); border: none; color: white; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 600; width: 100%; margin-top: 10px; }
-    
+    .btn-danger { background: var(--warn) !important; }
+    .btn-admin-tab { background: var(--purple) !important; }
+
+    /* 音楽プレイヤー用 */
+    .music-player-card { background: linear-gradient(135deg, var(--bg2), var(--bg3)); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 2rem 1.5rem; text-align: center; }
+    .music-visualizer { display: flex; justify-content: center; gap: 4px; height: 30px; align-items: flex-end; margin-bottom: 1.5rem; }
+    .bar { width: 4px; height: 5px; background: var(--accent); border-radius: 2px; transition: height 0.1s; }
+    .bar.playing { animation: bounceBar 0.6s ease infinite alternate; }
+    @keyframes bounceBar { from { height: 4px; } to { height: 28px; } }
+
     /* TOAST */
     .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 1px solid var(--border2); padding: 9px 22px; border-radius: 24px; font-size: 13px; opacity: 0; pointer-events: none; transition: 0.25s; z-index: 10000; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
-<body>
+<body class="theme-dark">
+
+<div class="news-banner" id="news-banner">
+  <div class="news-banner-content">
+    <span class="news-badge">お知らせ</span>
+    <span id="news-text"></span>
+  </div>
+</div>
 
 <div class="app">
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('timer')">⏱️<br>タイマー</button>
-    <button class="tab" onclick="switchTab('pet')">🐾<br>育成</button>
+    <button class="tab" onclick="switchTab('ranking')">🏆<br>順位</button>
+    <button class="tab" onclick="switchTab('music')">🎵<br>音楽</button>
     <button class="tab" onclick="switchTab('chat')">💬<br>ルーム</button>
-    <button class="tab" onclick="switchTab('records')">📊<br>記録</button>
+    <button class="tab" onclick="switchTab('records')">📊<br>履歴</button>
     <button class="tab" onclick="switchTab('settings')">⚙️<br>設定</button>
+    <button class="tab" id="tab-admin" onclick="switchTab('admin')" style="display:none; color:var(--purple);">🔑<br>管理</button>
   </div>
 
   <div id="panel-timer" class="panel active">
+    <div class="yt-input-row">
+      <input type="text" class="settings-input" id="yt-url-input" placeholder="YouTube動画のURL または 動画ID" style="flex:1; font-size:11px;">
+      <button class="ctrl-btn text-btn" onclick="loadYouTubeVideo()" style="height:34px; font-size:11px; background:var(--bg2);">動画読込</button>
+    </div>
+    <div class="yt-container">
+      <iframe id="yt-player" width="100%" height="100%" src="https://www.youtube.com/embed/jfKfPfyJRdk?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+
     <div class="preset-row">
       <button class="preset-btn sel" onclick="setPreset(this,5)">5分</button>
       <button class="preset-btn" onclick="setPreset(this,25)">25分</button>
@@ -128,9 +170,9 @@
       <input type="number" id="t-s" value="0" oninput="onCustomInput()">
     </div>
     <div class="ring-wrap">
-      <svg width="220" height="220" viewBox="0 0 220 220">
-        <circle class="ring-bg" cx="110" cy="110" r="96"/>
-        <circle class="ring-fill" id="ring" cx="110" cy="110" r="96" stroke-dasharray="603" stroke-dashoffset="0"/>
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle class="ring-bg" cx="100" cy="100" r="86"/>
+        <circle class="ring-fill" id="ring" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="0"/>
       </svg>
       <div class="ring-center"><div class="clock-big" id="t-display">05:00</div><div class="clock-status" id="t-status">準備完了</div></div>
     </div>
@@ -141,32 +183,29 @@
     </div>
   </div>
 
-  <div id="panel-pet" class="panel">
-    <div class="pet-container" id="pet-view-active" style="display: none;">
-      <div id="pet-warning" class="pet-warning" style="display:none;">⚠️ 勉強しないとあと1日で死んじゃうよ！</div>
-      <div class="pet-graphic" id="pet-graphic">🐶</div>
-      <div class="pet-name" id="pet-name-display">ポチ</div>
-      <div class="pet-level">Lv. <span id="pet-level-display">1</span></div>
-      
-      <div class="exp-bar-wrap"><div class="exp-bar-fill" id="pet-exp-bar"></div></div>
-      <div class="exp-text">次のレベルまで: <span id="pet-exp-remain">10</span> 分の学習</div>
+  <div id="panel-ranking" class="panel">
+    <div style="font-size:12px; color:var(--text2); margin-bottom:0.8rem; text-align:center;">👥 全ユーザーの累計学習時間ランキング</div>
+    <div class="rank-list" id="global-ranking-list">
+      <div style="text-align:center; font-size:12px; color:var(--text3);">読み込み中...</div>
     </div>
+  </div>
 
-    <div class="pet-container" id="pet-view-setup">
-      <h3 style="margin-bottom:1rem;">新しいペットを迎える</h3>
+  <div id="panel-music" class="panel">
+    <div class="music-player-card">
+      <div class="music-visualizer">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <h3 id="bgm-title" style="font-size:16px; margin-bottom:0.5rem;">作業用BGMプレイヤー</h3>
+      <p style="font-size:11px; color:var(--text2); margin-bottom:1.5rem;">ブラウザの機能で生成する癒やしの環境音サウンド</p>
+      
       <div class="settings-row">
-        <span>動物の種類</span>
-        <select class="settings-select" id="pet-type-select">
-          <option value="dog">🐶 いぬ</option>
-          <option value="cat">🐱 ねこ</option>
-          <option value="rabbit">🐰 うさぎ</option>
+        <span>BGMトラック選択</span>
+        <select class="settings-select" id="bgm-track-select" onchange="changeBGM()">
+          <option value="none">選択なし（停止）</option>
+          <option value="ambient">深海のアンビエント</option>
+          <option value="focus">集中アルファ波</option>
         </select>
       </div>
-      <div class="settings-row">
-        <span>ペットの名前</span>
-        <input type="text" class="settings-input" id="pet-name-input" placeholder="例: ポチ">
-      </div>
-      <button class="btn-action" onclick="createPet()">育成をスタート！</button>
     </div>
   </div>
 
@@ -182,7 +221,7 @@
 
   <div id="panel-records" class="panel">
     <div class="settings-group" style="text-align:center;">
-      <div style="font-size:12px; color:var(--text3); margin-bottom:0.5rem;">過去7日間の学習時間</div>
+      <div style="font-size:12px; color:var(--text3); margin-bottom:0.5rem;">過去7日間の個人学習時間</div>
       <canvas id="studyChart" height="200"></canvas>
     </div>
   </div>
@@ -193,6 +232,25 @@
       <div class="settings-row"><span>名前</span><input type="text" class="settings-input" id="prof-name" style="width:140px;"></div>
       <div class="settings-row"><span>アイコン</span><input type="text" class="settings-input" id="prof-emoji" maxlength="2" style="width:60px; text-align:center;"></div>
       <button class="btn-action" onclick="saveProfile()">保存する</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-title">🎨 背景色デザイン（10色）</div>
+      <div class="settings-row">
+        <span>テーマ変更</span>
+        <select class="settings-select" id="theme-select" onchange="changeAppTheme(this.value)">
+          <option value="theme-dark">🌌 デフォルトダーク</option>
+          <option value="theme-midnight">🌃 ミッドナイトブルー</option>
+          <option value="theme-sakura">🌸 夜桜ダークピンク</option>
+          <option value="theme-forest">🌲 ディープフォレスト</option>
+          <option value="theme-sunset">🌇 サンセットブラッド</option>
+          <option value="theme-purple">🔮 サイキックパープル</option>
+          <option value="theme-ocean">🌊 深海アクア</option>
+          <option value="theme-monochrome">🖤 モノクロームメタル</option>
+          <option value="theme-chocolate">🍫 ビターチョコ</option>
+          <option value="theme-cyber">⚡ サイバーネオン</option>
+        </select>
+      </div>
     </div>
 
     <div class="settings-group">
@@ -207,6 +265,37 @@
         </select>
       </div>
     </div>
+
+    <div class="settings-group" style="border-color: rgba(168,85,247,0.3);">
+      <div class="settings-title" style="color:var(--purple);">🔑 システム管理</div>
+      <button class="btn-action btn-admin-tab" onclick="authAdminMode()">管理者モードを起動</button>
+    </div>
+  </div>
+
+  <div id="panel-admin" class="panel">
+    <div class="settings-group" style="border-color: var(--purple);">
+      <div class="settings-title" style="color:var(--purple);">🛠️ 管理者コントロールパネル</div>
+      
+      <div style="margin-bottom: 1.5rem;">
+        <h4 style="font-size:12px; margin-bottom:0.5rem; color:var(--purple);">📢 全体お知らせ配信</h4>
+        <input type="text" class="settings-input" id="admin-news-input" placeholder="配信するテキストを入力..." style="width:100%; margin-bottom:8px;">
+        <div style="display:flex; gap:6px;">
+          <button class="btn-action" onclick="adminPublishNews()" style="margin-top:0; background:var(--purple);">配信する</button>
+          <button class="btn-action btn-danger" onclick="adminDeleteNews()" style="margin-top:0; width:80px;">消去</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <h4 style="font-size:12px; margin-bottom:0.5rem; color:var(--warn);">🏆 ランキングデータの初期化</h4>
+        <p style="font-size:11px; color:var(--text2); margin-bottom:0.5rem;">全アカウントの学習累計ランキングスコアを0にリセットします。</p>
+        <button class="btn-action btn-danger" onclick="adminClearRanking()">全員のランキングをリセット</button>
+      </div>
+
+      <div style="margin-bottom: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <h4 style="font-size:12px; margin-bottom:0.5rem; color:var(--warn);">💬 チャットデータ管理</h4>
+        <button class="btn-action btn-danger" onclick="adminClearChat()">チャット全削除</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -217,88 +306,210 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
 <script>
-  // --- 状態管理 ---
+  const ADMIN_PASSWORD = "Kei0230ta"; // 🔑 指定パスワードロック
+  let isAdminAuthenticated = false;
+
   let activeTab = 'timer';
   let records = JSON.parse(localStorage.getItem('study_records_v4') || '[]');
-  
-  // プロフィール
   let myClientId = localStorage.getItem('chat_client_id') || ('user_' + Math.random().toString(36).substr(2, 9));
   localStorage.setItem('chat_client_id', myClientId);
-  let myProfile = JSON.parse(localStorage.getItem('study_profile_v2') || '{"name":"ゲスト","emoji":"👤"}');
-
-  // ペット育成
-  let pet = JSON.parse(localStorage.getItem('study_pet') || 'null');
-  const petGraphics = { dog: '🐶', cat: '🐱', rabbit: '🐰', dead: '🪦' };
+  let myProfile = JSON.parse(localStorage.getItem('study_profile_v3') || '{"name":"ゲスト","emoji":"👤","totalSecs":0}');
 
   function init() {
     document.getElementById('prof-name').value = myProfile.name;
     document.getElementById('prof-emoji').value = myProfile.emoji;
     document.getElementById('alarm-sound-select').value = localStorage.getItem('study_alarm') || 'beep';
-    checkPetStatus();
+    
+    // テーマの初期復元
+    const savedTheme = localStorage.getItem('study_theme') || 'theme-dark';
+    document.getElementById('theme-select').value = savedTheme;
+    changeAppTheme(savedTheme);
+
     updateTimerUI();
+    syncMyTotalTimeToFirebase();
   }
 
   function switchTab(name) {
-    ['timer','pet','chat','records','settings'].forEach((n,i) => {
-      document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
-      const el = document.getElementById('panel-'+n); if(el) el.classList.toggle('active', n === name);
+    activeTab = name;
+    const tabs = ['timer','ranking','music','chat','records','settings','admin'];
+    tabs.forEach((n) => {
+      const tabEl = document.querySelectorAll('.tab')[tabs.indexOf(n)];
+      if (tabEl) tabEl.classList.toggle('active', n === name);
+      const panelEl = document.getElementById('panel-'+n);
+      if (panelEl) panelEl.classList.toggle('active', n === name);
     });
     if (name === 'records') updateChart();
-    if (name === 'pet') checkPetStatus();
   }
 
-  // --- 設定 ---
+  function changeAppTheme(themeName) {
+    document.body.className = '';
+    document.body.classList.add(themeName);
+    localStorage.setItem('study_theme', themeName);
+  }
+
+  function authAdminMode() {
+    if (isAdminAuthenticated) { switchTab('admin'); return; }
+    const input = prompt("管理者パスワードを入力してください：");
+    if (input === ADMIN_PASSWORD) {
+      isAdminAuthenticated = true;
+      document.getElementById('tab-admin').style.display = 'block';
+      switchTab('admin');
+      showToast("🔑 管理者認証に成功しました");
+    } else if (input !== null) { alert("パスワードが違います"); }
+  }
+
+  // --- YouTubeのURL解析 ＆ 読み込み ---
+  function loadYouTubeVideo() {
+    const input = document.getElementById('yt-url-input').value.trim();
+    if(!input) return;
+    let videoId = input;
+    if(input.includes("v=")) { videoId = input.split("v=")[1].split("&")[0]; }
+    else if(input.includes("youtu.be/")) { videoId = input.split("youtu.be/")[1].split("?")[0]; }
+    document.getElementById('yt-player').src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+    showToast("📺 動画を読み込みました");
+  }
+
+  // --- Firebase 初期化 ＆ データ同期 ---
+  firebase.initializeApp({ databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app" });
+  const database = firebase.database();
+  const chatRef = database.ref('chat_messages_v3');
+  const newsRef = database.ref('admin_announcement_v3');
+  const rankingRef = database.ref('global_ranking_v3'); // ランキング同期ノード
+
+  // お知らせ受信
+  newsRef.on('value', (snapshot) => {
+    const newsText = snapshot.val();
+    const banner = document.getElementById('news-banner');
+    if (newsText && newsText.trim() !== "") {
+      document.getElementById('news-text').textContent = newsText;
+      banner.style.display = 'block';
+    } else { banner.style.display = 'none'; }
+  });
+
+  // ランキングリアルタイム更新
+  rankingRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    const container = document.getElementById('global-ranking-list');
+    container.innerHTML = '';
+    if (!data) { container.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--text3);">データがありません</div>'; return; }
+    
+    // ソート処理
+    const sorted = Object.keys(data).map(k => data[k]).sort((a, b) => b.totalSecs - a.totalSecs);
+    
+    sorted.forEach((user, i) => {
+      const div = document.createElement('div');
+      div.className = 'rank-item';
+      const hours = Math.floor(user.totalSecs / 3600);
+      const mins = Math.floor((user.totalSecs % 3600) / 60);
+      div.innerHTML = `
+        <div class="rank-left">
+          <span class="rank-num">${i + 1}</span>
+          <span style="font-size:16px;">${user.emoji || '👤'}</span>
+          <span class="rank-name">${user.name}</span>
+        </div>
+        <span class="rank-time">${hours}h ${mins}m</span>
+      `;
+      container.appendChild(div);
+    });
+  });
+
+  function syncMyTotalTimeToFirebase() {
+    const total = records.reduce((sum, r) => sum + r.secs, 0);
+    myProfile.totalSecs = total;
+    localStorage.setItem('study_profile_v3', JSON.stringify(myProfile));
+    rankingRef.child(myClientId).set({
+      name: myProfile.name,
+      emoji: myProfile.emoji,
+      totalSecs: total
+    });
+  }
+
+  // --- 管理者モードコマンド ---
+  function adminPublishNews() {
+    const text = document.getElementById('admin-news-input').value.trim();
+    if(!text) return;
+    newsRef.set(text).then(() => showToast("📢 お知らせを配信しました"));
+  }
+  function adminDeleteNews() {
+    newsRef.set("").then(() => { document.getElementById('admin-news-input').value = ""; showToast("📢 お知らせを削除しました"); });
+  }
+  function adminClearChat() { if(confirm("チャット履歴を消去しますか？")) chatRef.remove(); }
+  function adminClearRanking() { if(confirm("警告：全員のランキング用学習データを0にリセットします。本当によろしいですか？")) rankingRef.remove().then(()=>showToast("🏆 ランキングをクリアしました")); }
+
+  // --- プロフィール ---
   function saveProfile() {
     myProfile.name = document.getElementById('prof-name').value.trim() || '名無し';
     myProfile.emoji = document.getElementById('prof-emoji').value.trim() || '👤';
-    localStorage.setItem('study_profile_v2', JSON.stringify(myProfile));
+    syncMyTotalTimeToFirebase();
     showToast("プロフィールを保存しました");
   }
 
-  // --- タイマー音 (Web Audio API) ---
+  // --- 音楽専用ページ用（Web Audio APIシンセ） ---
+  let audioCtx = null, bgmInterval = null;
+  function changeBGM() {
+    const track = document.getElementById('bgm-track-select').value;
+    const bars = document.querySelectorAll('.music-visualizer .bar');
+    
+    // リセット
+    if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+    bars.forEach(b => b.classList.remove('playing'));
+
+    if (track === 'none') return;
+    bars.forEach(b => b.classList.add('playing'));
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    if (track === 'ambient') {
+      // 深海の環境音（超低周波のうねり）
+      bgmInterval = setInterval(() => {
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(60 + Math.random()*4, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+        osc.start(); osc.stop(audioCtx.currentTime + 3);
+      }, 1500);
+    } else if (track === 'focus') {
+      // 集中用（ゆったりしたアルファ波コード）
+      const notes = [261.63, 329.63, 392.00, 523.25]; // Cコード
+      bgmInterval = setInterval(() => {
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(notes[Math.floor(Math.random()*notes.length)], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
+        osc.start(); osc.stop(audioCtx.currentTime + 4);
+      }, 2000);
+    }
+  }
+
+  // --- タイマー終了音用 ---
   function playAlarmSound() {
     const type = document.getElementById('alarm-sound-select').value;
-    localStorage.setItem('study_alarm', type);
     if (type === 'none') return;
-    
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    
     if (type === 'beep') {
-      osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.type = 'square'; osc.frequency.setValueAtTime(800, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime);
       osc.start(); osc.stop(ctx.currentTime + 0.1);
-      
-      setTimeout(() => {
-        const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-        osc2.connect(gain2); gain2.connect(ctx.destination);
-        osc2.type = 'square'; osc2.frequency.setValueAtTime(800, ctx.currentTime);
-        gain2.gain.setValueAtTime(0.1, ctx.currentTime);
-        osc2.start(); osc2.stop(ctx.currentTime + 0.1);
-      }, 200);
     } else if (type === 'chime') {
-      osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.5); // E5
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-      osc.start(); osc.stop(ctx.currentTime + 1.5);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, ctx.currentTime); osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      osc.start(); osc.stop(ctx.currentTime + 1);
     } else if (type === 'bell') {
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      osc.start(); osc.stop(ctx.currentTime + 0.8);
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8); osc.start(); osc.stop(ctx.currentTime + 0.8);
     }
   }
   function testAlarm() { playAlarmSound(); }
 
-  // --- タイマー ---
+  // --- タイマーコア ---
   let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
-  
   function setPreset(btn, mins) { document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); document.getElementById('t-h').value = Math.floor(mins/60); document.getElementById('t-m').value = mins%60; document.getElementById('t-s').value = 0; if(!timerRunning){timerTotal=mins*60; timerRemain=timerTotal; updateTimerUI();} }
   function onCustomInput() { if(!timerRunning){timerTotal=(parseInt(document.getElementById('t-h').value)||0)*3600+(parseInt(document.getElementById('t-m').value)||0)*60+(parseInt(document.getElementById('t-s').value)||0); timerRemain=timerTotal; updateTimerUI();} }
-  
   function toggleTimer() { timerRunning ? pauseTimer() : startTimer(); }
   function startTimer() { 
     if(timerRemain<=0) return; timerRunning=true; 
@@ -314,14 +525,12 @@
   }
   function pauseTimer() { timerRunning=false; clearInterval(timerInterval); document.getElementById('t-playbtn').classList.remove('running'); document.getElementById('t-playbtn').textContent='▶'; document.getElementById('t-status').textContent='一時停止'; }
   function resetTimer() { pauseTimer(); timerRemain=timerTotal; updateTimerUI(); document.getElementById('t-status').textContent='準備完了'; }
-  function saveTimerRecord() { const el=timerTotal-timerRemain; if(el<5) return showToast('5秒以上学習してください'); autoSave(el); showToast('記録と経験値を保存しました！'); resetTimer(); }
+  function saveTimerRecord() { const el=timerTotal-timerRemain; if(el<5) return showToast('5秒以上学習してください'); autoSave(el); showToast('記録を同期しました！'); resetTimer(); }
   
   function updateTimerUI() { 
     const h=Math.floor(timerRemain/3600), m=Math.floor((timerRemain%3600)/60), s=timerRemain%60;
     document.getElementById('t-display').textContent = h>0?`${pad(h)}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`; 
-    const r=timerTotal>0?timerRemain/timerTotal:1; 
-    document.getElementById('ring').style.strokeDashoffset=603*(1-r); 
-    document.getElementById('ring').style.stroke=r<0.2?'var(--warn)':'var(--accent)'; 
+    const r=timerTotal>0?timerRemain/timerTotal:1; document.getElementById('ring').style.strokeDashoffset=540*(1-r); 
   }
   function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -329,119 +538,17 @@
     const d = new Date().toLocaleDateString('ja-JP');
     records.push({ id: Date.now(), secs: secs, date: d });
     localStorage.setItem('study_records_v4', JSON.stringify(records));
-    addPetExp(secs); // ペットに経験値付与
+    syncMyTotalTimeToFirebase(); // Firebaseランキングへ自動反映
   }
 
-  // --- ペット育成機能 ---
-  function createPet() {
-    const name = document.getElementById('pet-name-input').value.trim() || 'ななし';
-    const type = document.getElementById('pet-type-select').value;
-    pet = { type: type, name: name, exp: 0, level: 1, lastStudyTime: Date.now(), isDead: false };
-    savePet();
-    checkPetStatus();
-    showToast(`${name} をお迎えしました！`);
-  }
-
-  function savePet() { localStorage.setItem('study_pet', JSON.stringify(pet)); }
-
-  function checkPetStatus() {
-    if (!pet) {
-      document.getElementById('pet-view-setup').style.display = 'block';
-      document.getElementById('pet-view-active').style.display = 'none';
-      return;
-    }
-    
-    document.getElementById('pet-view-setup').style.display = 'none';
-    document.getElementById('pet-view-active').style.display = 'block';
-
-    // 死亡判定 (48時間 = 2日)
-    const diffHours = (Date.now() - pet.lastStudyTime) / (1000 * 60 * 60);
-    const graphicEl = document.getElementById('pet-graphic');
-    const warningEl = document.getElementById('pet-warning');
-    
-    if (diffHours >= 48) {
-      pet.isDead = true;
-      graphicEl.textContent = petGraphics.dead;
-      graphicEl.classList.add('pet-dead');
-      document.getElementById('pet-name-display').textContent = `${pet.name} のお墓`;
-      warningEl.style.display = 'block';
-      warningEl.textContent = '2日間勉強しなかったため、お星様になりました...';
-      warningEl.innerHTML += '<br><button onclick="resetPet()" style="margin-top:10px;padding:4px 8px;border-radius:4px;border:none;cursor:pointer;">新しく飼う</button>';
-      return;
-    } else {
-      pet.isDead = false;
-      graphicEl.classList.remove('pet-dead');
-      graphicEl.textContent = petGraphics[pet.type];
-      document.getElementById('pet-name-display').textContent = pet.name;
-      
-      if (diffHours >= 24) {
-        warningEl.style.display = 'block';
-        warningEl.textContent = '⚠️ 勉強しないとあと1日で死んじゃうよ！';
-      } else {
-        warningEl.style.display = 'none';
-      }
-    }
-
-    // レベル計算 (必要経験値 = レベル * 15分(900秒))
-    updatePetUI();
-  }
-
-  function addPetExp(secs) {
-    if (!pet || pet.isDead) return;
-    pet.exp += secs;
-    pet.lastStudyTime = Date.now();
-    
-    let reqExp = pet.level * 900; // 次のLvまで: Lv1=15分, Lv2=30分...
-    if (pet.exp >= reqExp) {
-      pet.exp -= reqExp;
-      pet.level++;
-      showToast(`🎉 ${pet.name} が Lv.${pet.level} にレベルアップ！`);
-    }
-    savePet();
-    if(activeTab === 'pet') checkPetStatus();
-  }
-
-  function updatePetUI() {
-    if(!pet || pet.isDead) return;
-    document.getElementById('pet-level-display').textContent = pet.level;
-    let reqExp = pet.level * 900;
-    let percent = (pet.exp / reqExp) * 100;
-    document.getElementById('pet-exp-bar').style.width = percent + '%';
-    
-    let remainSecs = reqExp - pet.exp;
-    document.getElementById('pet-exp-remain').textContent = Math.ceil(remainSecs / 60);
-  }
-
-  function resetPet() {
-    if(confirm("新しいペットをお迎えしますか？")) {
-      pet = null; savePet(); checkPetStatus();
-    }
-  }
-
-  // --- Firebase チャット (アイコン横並び) ---
-  firebase.initializeApp({ databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app" });
-  const chatRef = firebase.database().ref('chat_messages_v2');
-
+  // --- チャットルーム同期 ---
   chatRef.limitToLast(50).on('value', (snapshot) => {
-    const msgsContainer = document.getElementById('chat-messages');
-    msgsContainer.innerHTML = '';
-    const data = snapshot.val();
-    if (!data) return;
-    
+    const msgsContainer = document.getElementById('chat-messages'); if (!msgsContainer) return;
+    msgsContainer.innerHTML = ''; const data = snapshot.val(); if (!data) return;
     Object.keys(data).forEach(key => {
-      const item = data[key];
-      const isMe = item.clientId === myClientId;
-      const div = document.createElement('div'); 
-      div.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
-      
-      // アイコンとコンテンツを分割して横並びに
-      div.innerHTML = `
-        <div class="chat-avatar">${item.emoji}</div>
-        <div class="chat-content">
-          <div class="chat-user">${item.name}</div>
-          <div class="chat-bubble">${item.text}</div>
-        </div>
-      `;
+      const item = data[key]; const isMe = item.clientId === myClientId;
+      const div = document.createElement('div'); div.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+      div.innerHTML = `<div class="chat-avatar">${item.emoji||'👤'}</div><div class="chat-content"><div class="chat-user">${item.name}</div><div class="chat-bubble">${item.text}</div></div>`;
       msgsContainer.appendChild(div);
     });
     setTimeout(() => { msgsContainer.scrollTop = msgsContainer.scrollHeight; }, 50);
@@ -453,22 +560,17 @@
     document.getElementById('chat-text').value = '';
   }
 
-  // --- グラフ ---
+  // --- グラフレンダリング ---
   let studyChart;
   function updateChart() {
-    const ctx = document.getElementById('studyChart').getContext('2d');
-    const labels = [], dataPoints = [];
+    const ctx = document.getElementById('studyChart').getContext('2d'); const labels = [], dataPoints = [];
     for(let i=6; i>=0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const dStr = d.toLocaleDateString('ja-JP');
-      labels.push(dStr.slice(5)); 
-      const secs = records.filter(r => r.date === dStr).reduce((a,b)=>a+b.secs, 0);
-      dataPoints.push(Math.round(secs / 60)); 
+      const d = new Date(); d.setDate(d.getDate() - i); const dStr = d.toLocaleDateString('ja-JP');
+      labels.push(dStr.slice(5)); dataPoints.push(Math.round(records.filter(r => r.date === dStr).reduce((a,b)=>a+b.secs, 0) / 60)); 
     }
     if(studyChart) studyChart.destroy();
     studyChart = new Chart(ctx, {
-      type: 'bar',
-      data: { labels: labels, datasets: [{ label: '学習(分)', data: dataPoints, backgroundColor: '#1dbe8a', borderRadius: 4 }] },
+      type: 'bar', data: { labels: labels, datasets: [{ label: '学習(分)', data: dataPoints, backgroundColor: '#1dbe8a', borderRadius: 4 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
   }
