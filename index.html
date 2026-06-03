@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>リアルタイム学習ルーム（アカウント＆ランキング版）</title>
+  <title>リアルタイム学習ルーム（フル機能版）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -42,9 +42,12 @@
       transition: background 0.3s, color 0.3s;
     }
 
-    .app { width: 100%; max-width: 480px; }
+    .app { width: 100%; max-width: 480px; transition: opacity 0.3s; }
     .app-header { text-align: center; margin-bottom: 2rem; padding-top: 0.5rem; }
     .app-header h1 { font-size: 15px; font-weight: 400; color: var(--text3); letter-spacing: 4px; text-transform: uppercase; }
+
+    /* お知らせインフォバー */
+    .announcement-bar { background: var(--warn); color: #fff; border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 1.5rem; font-size: 12px; display: none; line-height: 1.4; font-weight: 600; text-align: center; }
 
     /* Account Setup Bar */
     .account-bar { background: rgba(29,190,138,0.1); border: 1px solid var(--accent); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -74,7 +77,7 @@
     .custom-inputs .sep { font-family: 'DM Mono', monospace; font-size: 18px; color: var(--text3); }
     .custom-inputs .unit { font-size: 10px; color: var(--text3); letter-spacing: 1px; }
     .inp-grp { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 1.5rem; }
+    .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 1.5rem; transition: transform 0.3s; }
     .ring-wrap svg { transform: rotate(-90deg); }
     .ring-bg { fill: none; stroke: var(--bg3); stroke-width: 8; }
     .ring-fill { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.6s linear, stroke 0.4s; }
@@ -88,6 +91,14 @@
     .ctrl-btn.primary { width: 64px; height: 64px; background: var(--accent); border-color: var(--accent); color: #fff; }
     .ctrl-btn.primary.running { background: var(--warn); border-color: var(--warn); }
     .ctrl-btn.save-btn { border-color: rgba(29,190,138,0.3); color: var(--accent); font-size: 12px; width: auto; border-radius: 24px; padding: 0 18px; gap: 6px; }
+
+    /* 集中モード専用レイアウト */
+    body.focus-mode { align-items: center; justify-content: center; padding: 0; }
+    body.focus-mode .app > *:not(#panel-timer), body.focus-mode #panel-timer > *:not(.ring-wrap):not(.focus-exit-btn) { display: none !important; }
+    body.focus-mode .app { max-width: 100vw; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    body.focus-mode .ring-wrap { transform: scale(1.6); margin: 0; }
+    .focus-exit-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); border: 1px solid var(--border2); color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 12px; cursor: pointer; display: none; z-index: 1000; }
+    body.focus-mode .focus-exit-btn { display: block !important; }
 
     /* === YOUTUBE MUSIC PLAYER === */
     .yt-container { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1.5rem; }
@@ -162,14 +173,16 @@
     .btn-action.success { background: rgba(29,190,138,0.1); border-color: var(--accent); color: var(--accent); }
 
     .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 1px solid var(--border2); padding: 9px 22px; border-radius: 24px; font-size: 13px; opacity: 0; transition: 0.25s; pointer-events: none; z-index: 999; }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY=0; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app-root">
 
   <div class="app-header"><h1>Study Timer</h1></div>
+
+  <div class="announcement-bar" id="announcement-display"></div>
 
   <div class="account-bar">
     <div class="account-info">
@@ -210,8 +223,11 @@
     <div class="ctrl-row">
       <button class="ctrl-btn" onclick="resetTimer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       <button class="ctrl-btn primary" id="t-playbtn" onclick="toggleTimer()"><svg id="t-playicon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+      <button class="ctrl-btn" onclick="enterFocusMode()" title="集中モード"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
       <button class="ctrl-btn save-btn" onclick="saveTimerRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存</button>
     </div>
+    
+    <button class="focus-exit-btn" onclick="exitFocusMode()">集中モードを終了</button>
 
     <div class="yt-container">
       <div class="yt-title">
@@ -272,12 +288,28 @@
   <div id="panel-settings" class="panel">
     <div class="settings-group">
       <div class="settings-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M2 12A10 10 0 0 0 15 21.54A10 10 0 0 1 15 2.46A10 10 0 0 0 2 12Z"/></svg>テーマ（背景色）</div>
-      <div class="settings-row"><span>カラーを選択</span><select class="settings-select" id="theme-select" onchange="changeTheme()"><option value="default">ダーク (デフォルト)</option><option value="navy">ネイビーブルー</option><option value="forest">フォレストグリーン</option><option value="latte">カフェラテ (明るめ)</option></select></div>
+      <div class="settings-row"><span>カラーを選択</span><select class="settings-select" id="theme-select" onchange="changeTheme()"><option value="default">ダーク (デフォルト)</option><option value="navy">ネイビーブルー</option><option value="forest">フォレストグリーン</option><option value="sakura">🌸 サクラピンク (明るめ)</option><option value="mint">🌿 ミントグリーン (明るめ)</option><option value="citrus">🍋 シトラスイエロー (明るめ)</option><option value="sky">🐳 スカイブルー (明るめ)</option><option value="lavender">🔮 ラベンダー (明るめ)</option><option value="latte">☕ カフェラテ (明るめ)</option></select></div>
     </div>
     <div class="settings-group">
       <div class="settings-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>通知・サウンド</div>
       <div class="settings-row"><span>チャット着信音</span><select class="settings-select" id="sound-select" onchange="saveSettings()"><option value="chime">チャイム (♪)</option><option value="pop">ポップ (ポンッ)</option><option value="none">鳴らさない</option></select></div>
       <div class="settings-row"><div style="display:flex; flex-direction:column; gap:4px;"><span>ブラウザ通知</span><span style="font-size:10px; color:var(--text3);">画面を閉じてもスマホ等へ通知します</span></div><button class="btn-action" id="notify-btn" onclick="requestNotificationPerm()">通知を許可する</button></div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>管理者専用モード</div>
+      <div id="admin-login-box" class="settings-row">
+        <input type="password" class="account-input" id="admin-pass-input" placeholder="パスワードを入力...">
+        <button class="account-btn" onclick="loginAdmin()">ログイン</button>
+      </div>
+      <div id="admin-panel-box" style="display: none; flex-direction: column; gap: 10px; margin-top: 5px;">
+        <div style="font-size: 11px; color: var(--accent);">✓ 管理者認証済み</div>
+        <input type="text" class="account-input" id="announcement-input" placeholder="全画面に配信するお知らせを入力...">
+        <div style="display: flex; gap: 6px;">
+          <button class="account-btn" style="flex: 1;" onclick="broadcastAnnouncement()">お知らせを全配信</button>
+          <button class="account-btn" style="background: var(--text3);" onclick="clearAnnouncement()">消去</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -290,15 +322,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
 <script>
-  // YouTube Data API 魔法の鍵
   const YOUTUBE_API_KEY = "AIzaSyCUgdRQs7PEmNvfbtP0dZLLl_ggMZIGJ1Q";
 
-  // ---- 設定（テーマと音）の管理 ----
+  // テーマ設定（ご要望の明るい5色を追加）
   const themeColors = {
-    default: { bg: '#0d0d0f', bg2: '#16161a', bg3: '#1e1e24', border: 'rgba(255,255,255,0.08)', text1: '#f0f0f2', text2: '#9898a8', text3: '#5a5a6a' },
-    navy:    { bg: '#050b14', bg2: '#0a1324', bg3: '#121f38', border: 'rgba(255,255,255,0.08)', text1: '#f1f5f9', text2: '#94a3b8', text3: '#475569' },
-    forest:  { bg: '#04150a', bg2: '#082413', bg3: '#0f3a21', border: 'rgba(255,255,255,0.1)', text1: '#ecfdf5', text2: '#a7f3d0', text3: '#34d399' },
-    latte:   { bg: '#fdfbf7', bg2: '#f5f1ea', bg3: '#ebe3d5', border: 'rgba(0,0,0,0.08)', text1: '#4a4238', text2: '#786d5f', text3: '#a39b90' }
+    default:  { bg: '#0d0d0f', bg2: '#16161a', bg3: '#1e1e24', border: 'rgba(255,255,255,0.08)', text1: '#f0f0f2', text2: '#9898a8', text3: '#5a5a6a' },
+    navy:     { bg: '#050b14', bg2: '#0a1324', bg3: '#121f38', border: 'rgba(255,255,255,0.08)', text1: '#f1f5f9', text2: '#94a3b8', text3: '#475569' },
+    forest:   { bg: '#04150a', bg2: '#082413', bg3: '#0f3a21', border: 'rgba(255,255,255,0.1)',  text1: '#ecfdf5', text2: '#a7f3d0', text3: '#34d399' },
+    latte:    { bg: '#fdfbf7', bg2: '#f5f1ea', bg3: '#ebe3d5', border: 'rgba(0,0,0,0.08)',       text1: '#4a4238', text2: '#786d5f', text3: '#a39b90' },
+    sakura:   { bg: '#fff5f5', bg2: '#ffe3e3', bg3: '#ffd0d0', border: 'rgba(235,140,140,0.2)', text1: '#662222', text2: '#aa6666', text3: '#cc9999' },
+    mint:     { bg: '#f4fbf7', bg2: '#e6f7ed', bg3: '#d3f2e0', border: 'rgba(120,200,150,0.2)', text1: '#15472b', text2: '#3a7d56', text3: '#7cbfa2' },
+    citrus:   { bg: '#fefdf0', bg2: '#fdfad3', bg3: '#fbf4b3', border: 'rgba(210,190,80,0.2)',  text1: '#4a4205', text2: '#827514', text3: '#b0a446' },
+    sky:      { bg: '#f0f9ff', bg2: '#e0f2fe', bg3: '#bae6fd', border: 'rgba(125,190,230,0.2)', text1: '#034569', text2: '#0c73a8', text3: '#6cb0d6' },
+    lavender: { bg: '#faf5ff', bg2: '#f3e8ff', bg3: '#e9d5ff', border: 'rgba(180,150,220,0.2)', text1: '#3b1261', text2: '#6b21a8', text3: '#a87bcb' }
   };
 
   function loadSettings() {
@@ -333,7 +369,40 @@
     playNotificationSound(true);
   }
 
-  // ---- 音を鳴らす（ブラウザ内蔵音源） ----
+  // 集中モード
+  function enterFocusMode() {
+    document.body.classList.add('focus-mode');
+    showToast('集中モード起動（画面タップ下部で解除できます）');
+  }
+  function exitFocusMode() {
+    document.body.classList.remove('focus-mode');
+  }
+
+  // 管理者モード機能
+  function loginAdmin() {
+    const pass = document.getElementById('admin-pass-input').value;
+    if (pass === 'kei0230ta') {
+      document.getElementById('admin-login-box').style.display = 'none';
+      document.getElementById('admin-panel-box').style.display = 'flex';
+      showToast('管理者として認証されました');
+    } else {
+      showToast('パスワードが違います');
+    }
+  }
+
+  function broadcastAnnouncement() {
+    const text = document.getElementById('announcement-input').value.trim();
+    if (!text) return showToast('お知らせを入力してください');
+    db.ref('system_announcement').set({ text: text, timestamp: firebase.database.ServerValue.TIMESTAMP });
+    showToast('全体にお知らせを配信しました！');
+  }
+
+  function clearAnnouncement() {
+    db.ref('system_announcement').remove();
+    document.getElementById('announcement-input').value = '';
+    showToast('配信中のお知らせを削除しました');
+  }
+
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   let audioCtx;
 
@@ -359,7 +428,6 @@
     }
   }
 
-  // ---- スマホ/ブラウザへのプッシュ通知設定 ----
   function updateNotifyBtnUI() {
     const btn = document.getElementById('notify-btn');
     if (!("Notification" in window)) { btn.textContent = "この端末は非対応です"; btn.disabled = true; }
@@ -372,8 +440,6 @@
       updateNotifyBtnUI();
       if (permission === "granted") {
         new Notification("通知オン！", { body: "メッセージが届くとここにお知らせします💡" });
-      } else {
-        alert("通知が拒否されました。スマホの設定から許可してください。");
       }
     });
   }
@@ -384,12 +450,12 @@
     }
   }
 
-  // ---- Firebase設定 ＆ アカウント管理 ----
+  // Firebase接続管理
   const firebaseConfig = { databaseURL: "https://study-timer-2350b-default-rtdb.asia-southeast1.firebasedatabase.app" };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const chatRef = db.ref('chat_messages');
-  const rankRef = db.ref('daily_ranking'); // ランキング常時保存用の新しい部屋
+  const rankRef = db.ref('daily_ranking');
 
   let myClientId = localStorage.getItem('chat_client_id') || ('user_' + Math.random().toString(36).substr(2, 9));
   localStorage.setItem('chat_client_id', myClientId);
@@ -413,7 +479,7 @@
     localStorage.setItem('chat_user_name', myName);
     loadAccountUI();
     showToast('アカウント名を登録しました！');
-    sendSyncSignal(); // 登録後即座にランキング反映
+    sendSyncSignal();
   }
 
   document.getElementById('chat-text').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
@@ -422,7 +488,7 @@
   setTimeout(() => { isInitialLoad = false; }, 2000); 
   let latestMsgId = null;
 
-  // 1. チャット受信
+  // チャットリスナー
   chatRef.limitToLast(50).on('value', (snapshot) => {
     const msgsContainer = document.getElementById('chat-messages');
     msgsContainer.innerHTML = '';
@@ -448,9 +514,25 @@
     msgsContainer.scrollTop = msgsContainer.scrollHeight;
   });
 
-  // 2. 常時動くリアルタイムランキングの受信
-  const todayStr = new Date().toLocaleDateString('ja-JP').replace(/\//g, '-');
-  rankRef.child(todayStr).on('value', (snapshot) => {
+  // 常時お知らせリアルタイム受信リスナー
+  db.ref('system_announcement').on('value', (snapshot) => {
+    const bar = document.getElementById('announcement-display');
+    const data = snapshot.val();
+    if (data && data.text) {
+      bar.textContent = `📢 お知らせ: ${data.text}`;
+      bar.style.display = 'block';
+    } else {
+      bar.style.display = 'none';
+    }
+  });
+
+  // 常時ランキング同期受信リスナー
+  function getTodayString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  rankRef.child(getTodayString()).on('value', (snapshot) => {
     const rankListEl = document.getElementById('rank-list');
     const data = snapshot.val();
     
@@ -459,10 +541,9 @@
       return;
     }
 
-    // 時間順に並び替え
     const rankArr = Object.keys(data)
       .map(id => ({ id, ...data[id] }))
-      .filter(u => u.totalSecs > 0)
+      .filter(u => u.totalSecs >= 0)
       .sort((a, b) => b.totalSecs - a.totalSecs);
 
     if (rankArr.length === 0) {
@@ -471,7 +552,7 @@
       rankListEl.innerHTML = rankArr.map((u, i) => `
         <div class="rank-row rank-${i+1} ${u.id === myClientId ? 'is-me' : ''}">
           <div class="rank-num">${i+1}</div>
-          <div class="rank-name">${u.name}</div>
+          <div class="rank-name">${u.name || 'ゲスト'}</div>
           <div class="rank-time">${fmtSec(u.totalSecs)}</div>
         </div>
       `).join('');
@@ -485,14 +566,13 @@
     document.getElementById('chat-text').value = '';
   }
 
-  // ランキング部屋に自分のタイムを上書き同期する関数
+  // タイム同期シグナル（強化版）
   function sendSyncSignal() {
     const today = new Date().toLocaleDateString('ja-JP');
     const todaySecs = records.filter(r => r.date === today).reduce((a, r) => a + r.secs, 0);
-    const serverTodayStr = today.replace(/\//g, '-');
+    const serverTodayStr = getTodayString();
     
-    // アカウント名が入っている場合のみ送信
-    if (myName && todaySecs >= 0) {
+    if (myName) {
       rankRef.child(serverTodayStr).child(myClientId).set({
         name: myName,
         totalSecs: todaySecs,
@@ -501,7 +581,7 @@
     }
   }
 
-  // ---- YouTube プレイヤー＆検索・プレイリスト制御 ----
+  // YouTube制御
   let ytPlayer = null;
   let playlist = JSON.parse(localStorage.getItem('study_playlist') || '[{"id":"jfKfPfyJRdk","title":"定番 Lofi BGM (Default)"}]');
   
@@ -513,23 +593,18 @@
   async function searchYouTube() {
     const query = document.getElementById('yt-query').value.trim();
     if (!query) return showToast('検索ワードを入力してください');
-
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=4&key=${YOUTUBE_API_KEY}`;
-    
     try {
       const res = await fetch(url);
       const data = await res.json();
       if (data.error) throw new Error(data.error.message);
-      
       const resultsEl = document.getElementById('yt-results');
       document.getElementById('title-results').style.display = 'block';
       resultsEl.innerHTML = '';
-
       if (!data.items || data.items.length === 0) {
         resultsEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;">見つかりませんでした</div>';
         return;
       }
-
       data.items.forEach(item => {
         const videoId = item.id.videoId;
         const title = item.snippet.title;
@@ -543,7 +618,7 @@
       });
     } catch (err) {
       console.error(err);
-      showToast('検索に失敗しました。APIキーを確認してください。');
+      showToast('検索に失敗しました。');
     }
   }
 
@@ -583,21 +658,14 @@
       showToast('曲を再生します');
     } else {
       ytPlayer = new YT.Player('yt-player', {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
+        height: '100%', width: '100%', videoId: videoId,
         playerVars: { 'playsinline': 1, 'rel': 0, 'autoplay': 1 },
-        events: {
-          'onReady': (event) => { 
-            event.target.playVideo(); 
-            showToast('曲を再生します');
-          }
-        }
+        events: { 'onReady': (event) => { event.target.playVideo(); showToast('曲を再生します'); } }
       });
     }
   }
 
-  // ---- 共通タイマー機能 ----
+  // タイマーコアロジック
   let activeTab = 'timer', records = JSON.parse(localStorage.getItem('study_records_v3') || '[]');
   let timerTotal = 300, timerRemain = 300, timerRunning = false, timerInterval = null;
   let swElapsed = 0, swRunning = false, swInterval = null, swLaps = [], swLastLap = 0;
@@ -630,7 +698,7 @@
   function autoSave(t, s) {
     const n = new Date(); records.unshift({ id: Date.now(), type: t, secs: s, date: n.toLocaleDateString('ja-JP'), time: n.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) });
     localStorage.setItem('study_records_v3', JSON.stringify(records)); 
-    sendSyncSignal(); // 記録が保存された瞬間に自動でFirebaseのランキング情報を更新
+    sendSyncSignal();
   }
   function delRecord(id) { records=records.filter(r=>r.id!==id); localStorage.setItem('study_records_v3', JSON.stringify(records)); sendSyncSignal(); renderRecords(); }
   
@@ -650,17 +718,7 @@
 
   loadSettings();
   updateTimerUI();
-  setTimeout(sendSyncSignal, 1000);
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./firebase-messaging-sw.js')
-    .then((registration) => {
-      const messaging = firebase.messaging();
-      messaging.getToken({ 
-        vapidKey: 'BMpm4PTpHTOHE8TkPcPOgXjP1posaudzSpVEMczaHOSNasUm5Hlt1ux4q6qvRUPXgcqkwkrc9EjOjI7FCrkjV54' 
-      });
-    });
-  }
+  setTimeout(sendSyncSignal, 1500);
 </script>
 </body>
 </html>
